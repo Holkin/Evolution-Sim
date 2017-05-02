@@ -74,14 +74,21 @@ public class Board {
 		for (int x = 0; x < Configuration.BOARD_WIDTH; x++) {
 			for (int y = 0; y < Configuration.BOARD_HEIGHT; y++) {
 				float bigForce = EvolvioColor.pow(((float) y) / Configuration.BOARD_HEIGHT, 0.5f);
-				float fertility = this.evolvioColor.noise(x * Configuration.NOISE_STEP_SIZE * 3,
-						y * Configuration.NOISE_STEP_SIZE * 3) * (1 - bigForce) * 5.0f
-						+ this.evolvioColor.noise(x * Configuration.NOISE_STEP_SIZE * 0.5f,
-								y * Configuration.NOISE_STEP_SIZE * 0.5f) * bigForce * 5.0f
-						- 1.5f;
-				float climateType = this.evolvioColor.noise(x * Configuration.NOISE_STEP_SIZE * 0.2f + 10000,
-						y * Configuration.NOISE_STEP_SIZE * 0.2f + 10000) * 1.63f - 0.4f;
-				climateType = EvolvioColor.min(EvolvioColor.max(climateType, 0), 0.8f);
+				float fertility = this.evolvioColor.noise(
+						x * Configuration.NOISE_STEP_SIZE * 3,
+						y * Configuration.NOISE_STEP_SIZE * 3
+					) * (1 - bigForce) * 5.0f
+				+ this.evolvioColor.noise(
+						x * Configuration.NOISE_STEP_SIZE * 0.5f,
+						y * Configuration.NOISE_STEP_SIZE * 0.5f
+					) * bigForce * 5.0f
+				- 1.5f;
+				float climateType = this.evolvioColor.noise(
+						x * Configuration.NOISE_STEP_SIZE * 0.2f + 10000,
+						y * Configuration.NOISE_STEP_SIZE * 0.2f + 10000
+				) * 1.63f - 0.4f;
+
+				climateType = Math.min(Math.max(climateType, 0), 0.8f);
 				tiles[x][y] = new Tile(this.evolvioColor, this, x, y, fertility, climateType);
 			}
 		}
@@ -241,7 +248,7 @@ public class Board {
 				this.evolvioColor.fill(0.33f, 1, 0.4f);
 			}
 			float EUbar = 20 * energyUsage;
-			this.evolvioColor.rect(110, 280, EvolvioColor.min(EvolvioColor.max(EUbar, -110), 110), 25);
+			this.evolvioColor.rect(110, 280, Math.min(Math.max(EUbar, -110), 110), 25);
 			if (EUbar < -110) {
 				this.evolvioColor.rect(0, 280, 25, (-110 - EUbar) * 20 + 25);
 			} else if (EUbar > 110) {
@@ -516,7 +523,7 @@ public class Board {
 	}
 
 	private float tempBounds(float temp) {
-		return EvolvioColor.min(EvolvioColor.max(temp, Configuration.THERMOMETER_MINIMUM),
+		return Math.min(Math.max(temp, Configuration.THERMOMETER_MINIMUM),
 				Configuration.THERMOMETER_MAXIMUM);
 	}
 
