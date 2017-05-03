@@ -46,7 +46,7 @@ public class Configuration {
 	public static final double MAXIMUM_WEIGHT = 10;
 	public static final double MAXIMUM_MUTATION_RATE = 0.1;
 
-	// Creature
+	// CreatureOld
 	public static final double ACCELERATION_ENERGY = 0.18;
 	public static final double ACCELERATION_BACKWARDS_ENERGY = 0.24;
 	public static final double SWIM_ENERGY = 0.008;

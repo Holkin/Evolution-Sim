@@ -17,7 +17,7 @@ import static evolv.io.Configuration.*;
 public class Board {
 	private static final String[] SORT_METRIC_NAMES = { "Biggest", "Smallest", "Youngest", "Oldest", "A to Z", "Z to A",
 			"Highest Gen", "Lowest Gen" };
-	private static final Comparator<Creature>[] CREATURE_COMPARATORS = new Comparator[] {
+	private static final Comparator<CreatureOld>[] CREATURE_COMPARATORS = new Comparator[] {
 			new CreatureComparators.SizeComparator(SortOrder.DESCENDING),
 			new CreatureComparators.SizeComparator(SortOrder.ASCENDING),
 			new CreatureComparators.AgeComparator(SortOrder.DESCENDING),
@@ -30,12 +30,12 @@ public class Board {
 	private final EvolvioApplet evolvioApplet;
 	private final int randomSeed;
 
-	// Creature
+	// CreatureOld
 	private final List<SoftBody>[][] softBodiesInPositions = new List[Configuration.BOARD_WIDTH][Configuration.BOARD_HEIGHT];
-	private final List<Creature> creatures = new ArrayList<Creature>();
-	private final Creature[] list = new Creature[Configuration.LIST_SLOTS];
+	private final List<CreatureOld> creatureOlds = new ArrayList<CreatureOld>();
+	private final CreatureOld[] list = new CreatureOld[Configuration.LIST_SLOTS];
 	private float spawnChance = Configuration.SPAWN_CHANCE;
-	private Creature selectedCreature;
+	private CreatureOld selectedCreatureOld;
 	private int creatureIDUpTo;
 	private int sortMetric;
 	private boolean isPressingKeyB;
@@ -152,8 +152,8 @@ public class Board {
 		for (SoftBody rock : rocks) {
 			rock.drawSoftBody(scaleUp);
 		}
-		for (Creature creature : creatures) {
-			creature.drawSoftBody(scaleUp, camZoom, true);
+		for (CreatureOld creatureOld : creatureOlds) {
+			creatureOld.drawSoftBody(scaleUp, camZoom, true);
 		}
 	}
 
@@ -179,15 +179,15 @@ public class Board {
 		this.evolvioApplet.text(yearText, 10, 48);
 		float seasonTextXCoor = this.evolvioApplet.textWidth(yearText) + 50;
 		this.evolvioApplet.textSize(20);
-		this.evolvioApplet.text("Population: " + creatures.size(), 10, 80);
+		this.evolvioApplet.text("Population: " + creatureOlds.size(), 10, 80);
 		String[] seasons = { "Winter", "Spring", "Summer", "Autumn" };
 		this.evolvioApplet.text(seasons[(int) (getSeason() * 4)] + "\nSeed: " + randomSeed, seasonTextXCoor, 30);
 
-		if (selectedCreature == null) {
-			Collections.sort(creatures, CREATURE_COMPARATORS[sortMetric]);
+		if (selectedCreatureOld == null) {
+			Collections.sort(creatureOlds, CREATURE_COMPARATORS[sortMetric]);
 			Arrays.fill(list, null);
-			for (int i = 0; i < Configuration.LIST_SLOTS && i < creatures.size(); i++) {
-				list[i] = creatures.get(i);
+			for (int i = 0; i < Configuration.LIST_SLOTS && i < creatureOlds.size(); i++) {
+				list[i] = creatureOlds.get(i);
 			}
 			double maxEnergy = 0;
 			for (int i = 0; i < Configuration.LIST_SLOTS; i++) {
@@ -268,7 +268,7 @@ public class Board {
 				}
 			}
 		} else {
-			float energyUsage = (float) selectedCreature.getEnergyUsage(timeStep);
+			float energyUsage = (float) selectedCreatureOld.getEnergyUsage(timeStep);
 			this.evolvioApplet.noStroke();
 			if (energyUsage <= 0) {
 				this.evolvioApplet.fill(0, 1, 0.5f);
@@ -284,23 +284,23 @@ public class Board {
 				this.evolvioApplet.rect(185, 280 - h, 25, h);
 			}
 			this.evolvioApplet.fill(0, 0, 1);
-			this.evolvioApplet.text("Name: " + selectedCreature.getName(), 10, 225);
+			this.evolvioApplet.text("Name: " + selectedCreatureOld.getName(), 10, 225);
 			this.evolvioApplet.text(
-					"Energy: " + EvolvioApplet.nf(100 * (float) selectedCreature.getEnergy(), 0, 2) + " yums", 10, 250);
+					"Energy: " + EvolvioApplet.nf(100 * (float) selectedCreatureOld.getEnergy(), 0, 2) + " yums", 10, 250);
 			this.evolvioApplet.text("" + EvolvioApplet.nf(100 * energyUsage, 0, 2) + " yums/year", 10, 275);
 
-			this.evolvioApplet.text("ID: " + selectedCreature.getId(), 10, 325);
-			this.evolvioApplet.text("X: " + EvolvioApplet.nf((float) selectedCreature.getPx(), 0, 2), 10, 350);
-			this.evolvioApplet.text("Y: " + EvolvioApplet.nf((float) selectedCreature.getPy(), 0, 2), 10, 375);
-			this.evolvioApplet.text("Rotation: " + EvolvioApplet.nf((float) selectedCreature.getRotation(), 0, 2), 10,
+			this.evolvioApplet.text("ID: " + selectedCreatureOld.getId(), 10, 325);
+			this.evolvioApplet.text("X: " + EvolvioApplet.nf((float) selectedCreatureOld.getPx(), 0, 2), 10, 350);
+			this.evolvioApplet.text("Y: " + EvolvioApplet.nf((float) selectedCreatureOld.getPy(), 0, 2), 10, 375);
+			this.evolvioApplet.text("Rotation: " + EvolvioApplet.nf((float) selectedCreatureOld.getRotation(), 0, 2), 10,
 					400);
-			this.evolvioApplet.text("Birthday: " + toDate(selectedCreature.getBirthTime()), 10, 425);
-			this.evolvioApplet.text("(" + toAge(selectedCreature.getAge()) + ")", 10, 450);
-			this.evolvioApplet.text("Generation: " + selectedCreature.getGen(), 10, 475);
-			this.evolvioApplet.text("Parents: " + selectedCreature.getParents(), 10, 500, 210, 255);
-			this.evolvioApplet.text("Hue: " + EvolvioApplet.nf((float) (selectedCreature.getHue()), 0, 2), 10, 550, 210,
+			this.evolvioApplet.text("Birthday: " + toDate(selectedCreatureOld.getBirthTime()), 10, 425);
+			this.evolvioApplet.text("(" + toAge(selectedCreatureOld.getAge()) + ")", 10, 450);
+			this.evolvioApplet.text("Generation: " + selectedCreatureOld.getGen(), 10, 475);
+			this.evolvioApplet.text("Parents: " + selectedCreatureOld.getParents(), 10, 500, 210, 255);
+			this.evolvioApplet.text("Hue: " + EvolvioApplet.nf((float) (selectedCreatureOld.getHue()), 0, 2), 10, 550, 210,
 					255);
-			this.evolvioApplet.text("Mouth Hue: " + EvolvioApplet.nf((float) (selectedCreature.getMouthHue()), 0, 2), 10,
+			this.evolvioApplet.text("Mouth Hue: " + EvolvioApplet.nf((float) (selectedCreatureOld.getMouthHue()), 0, 2), 10,
 					575, 210, 255);
 
 			if (userControl) {
@@ -315,7 +315,7 @@ public class Board {
 			float apX = EvolvioApplet
 					.round(((this.evolvioApplet.mouseX) - 400 - Brain.NEURON_OFFSET_X - x1) / 50.0f / 1.2f);
 			float apY = EvolvioApplet.round((this.evolvioApplet.mouseY - 80 - Brain.NEURON_OFFSET_Y - y1) / 50.0f);
-			selectedCreature.drawBrain(50, (int) apX, (int) apY);
+			selectedCreatureOld.drawBrain(50, (int) apX, (int) apY);
 			this.evolvioApplet.popMatrix();
 		}
 
@@ -323,12 +323,12 @@ public class Board {
 		this.evolvioApplet.fill(0, 0, 0);
 		this.evolvioApplet.textAlign(EvolvioApplet.RIGHT);
 		this.evolvioApplet.textSize(24);
-		this.evolvioApplet.text("Population: " + creatures.size(), x2 - x1 - 10, y2 - y1 - 10);
+		this.evolvioApplet.text("Population: " + creatureOlds.size(), x2 - x1 - 10, y2 - y1 - 10);
 		this.evolvioApplet.popMatrix();
 
 		this.evolvioApplet.pushMatrix();
 		this.evolvioApplet.translate(x2, y1);
-		if (selectedCreature == null) {
+		if (selectedCreatureOld == null) {
 			this.evolvioApplet.textAlign(EvolvioApplet.RIGHT);
 			this.evolvioApplet.textSize(24);
 			this.evolvioApplet.text("Temperature", -10, 24);
@@ -337,8 +337,8 @@ public class Board {
 		}
 		this.evolvioApplet.popMatrix();
 
-		if (selectedCreature != null) {
-			drawCreature(selectedCreature, x1 + 65, y1 + 147, 2.3f, scaleUp);
+		if (selectedCreatureOld != null) {
+			drawCreature(selectedCreatureOld, x1 + 65, y1 + 147, 2.3f, scaleUp);
 		}
 	}
 
@@ -376,27 +376,27 @@ public class Board {
 			for (int i = Configuration.POPULATION_HISTORY_LENGTH - 1; i >= 1; i--) {
 				populationHistory[i] = populationHistory[i - 1];
 			}
-			populationHistory[0] = creatures.size();
+			populationHistory[0] = creatureOlds.size();
 		}
 		temperature = getGrowthRate(getSeason());
 		// ======================
 		world.update(getGrowthRate(prevYear)*timeStep); // TODO refactor growthRate scaling
 		// ======================
-		for (int i = 0; i < creatures.size(); i++) {
-			creatures.get(i).setPreviousEnergy();
+		for (int i = 0; i < creatureOlds.size(); i++) {
+			creatureOlds.get(i).setPreviousEnergy();
 		}
 		/*
 		 * for(int i = 0; i < rocks.size(); i++) {
 		 * rocks.get(i).collide(timeStep*OBJECT_TIMESTEPS_PER_YEAR); }
 		 */
 		randomSpawnCreature(false);
-		for (int i = 0; i < creatures.size(); i++) {
-			Creature me = creatures.get(i);
+		for (int i = 0; i < creatureOlds.size(); i++) {
+			CreatureOld me = creatureOlds.get(i);
 			me.collide(timeStep);
 			me.metabolize(timeStep);
 			me.useBrain(timeStep, !userControl);
 			if (userControl) {
-				if (me == selectedCreature) {
+				if (me == selectedCreatureOld) {
 					if (this.evolvioApplet.keyPressed) {
 						if (this.evolvioApplet.key == EvolvioApplet.CODED) {
 							if (this.evolvioApplet.keyCode == EvolvioApplet.UP)
@@ -443,9 +443,9 @@ public class Board {
 		for (int i = 0; i < rocks.size(); i++) {
 			rocks.get(i).applyMotions(timeStep * Configuration.TIMESTEPS_PER_YEAR);
 		}
-		for (int i = 0; i < creatures.size(); i++) {
-			creatures.get(i).applyMotions(timeStep * Configuration.TIMESTEPS_PER_YEAR);
-			creatures.get(i).see();
+		for (int i = 0; i < creatureOlds.size(); i++) {
+			creatureOlds.get(i).applyMotions(timeStep * Configuration.TIMESTEPS_PER_YEAR);
+			creatureOlds.get(i).see();
 		}
 		if (Math.floor(fileSaveTimes[1] / imageSaveInterval) != Math.floor(year / imageSaveInterval)) {
 			prepareForFileSave(1);
@@ -574,11 +574,11 @@ public class Board {
 	private void randomSpawnCreature(boolean choosePreexisting) {
 		if (this.evolvioApplet.random(0, 1) < spawnChance) {
 			if (choosePreexisting) {
-				Creature c = getRandomCreature();
+				CreatureOld c = getRandomCreature();
 				c.addEnergy(Configuration.SAFE_SIZE);
 				c.reproduce(Configuration.SAFE_SIZE, timeStep);
 			} else {
-				creatures.add(new Creature(this.evolvioApplet, this));
+				creatureOlds.add(new CreatureOld(this.evolvioApplet, this));
 			}
 		}
 	}
@@ -595,9 +595,9 @@ public class Board {
 		creatureIDUpTo++;
 	}
 
-	private Creature getRandomCreature() {
-		int index = (int) (this.evolvioApplet.random(0, creatures.size()));
-		return creatures.get(index);
+	private CreatureOld getRandomCreature() {
+		int index = (int) (this.evolvioApplet.random(0, creatureOlds.size()));
+		return creatureOlds.get(index);
 	}
 
 	public int getBackgroundColor() {
@@ -617,7 +617,7 @@ public class Board {
 				Configuration.MAXIMUM_ROCK_ENERGY_BASE), 4);
 	}
 
-	private void drawCreature(Creature c, float x, float y, float scale, float scaleUp) {
+	private void drawCreature(CreatureOld c, float x, float y, float scale, float scaleUp) {
 		this.evolvioApplet.pushMatrix();
 		float scaleIconUp = scaleUp * scale;
 		this.evolvioApplet.translate((float) (-c.getPx() * scaleIconUp), (float) (-c.getPy() * scaleIconUp));
@@ -659,27 +659,27 @@ public class Board {
 		return placeholder;
 	}
 
-	public void addCreature(Creature creature) {
-		creatures.add(creature);
+	public void addCreature(CreatureOld creatureOld) {
+		creatureOlds.add(creatureOld);
 	}
 
-	public void removeCreature(Creature creature) {
-		creatures.remove(creature);
+	public void removeCreature(CreatureOld creatureOld) {
+		creatureOlds.remove(creatureOld);
 	}
 
-	public Creature getSelectedCreature() {
-		return selectedCreature;
+	public CreatureOld getSelectedCreatureOld() {
+		return selectedCreatureOld;
 	}
 
-	public void setSelectedCreature(Creature selectedCreature) {
-		this.selectedCreature = selectedCreature;
+	public void setSelectedCreatureOld(CreatureOld selectedCreatureOld) {
+		this.selectedCreatureOld = selectedCreatureOld;
 	}
 
 	public void unselect() {
-		selectedCreature = null;
+		selectedCreatureOld = null;
 	}
 
-	public Creature getCreatureInList(int slotIndex) {
+	public CreatureOld getCreatureInList(int slotIndex) {
 		if (slotIndex < 0 || slotIndex >= list.length) {
 			return null;
 		}

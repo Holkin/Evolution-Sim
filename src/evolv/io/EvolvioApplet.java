@@ -109,10 +109,10 @@ public class EvolvioApplet extends PApplet {
 				dragMode = DragMode.MIN_TEMPERATURE;
 			}
 		}
-		if (evoBoard.getSelectedCreature() != null) {
-			cameraX = (float) evoBoard.getSelectedCreature().getPx();
-			cameraY = (float) evoBoard.getSelectedCreature().getPy();
-			if (evoBoard.isUserControl()) cameraR = -PI / 2.0f - (float) evoBoard.getSelectedCreature().getRotation();
+		if (evoBoard.getSelectedCreatureOld() != null) {
+			cameraX = (float) evoBoard.getSelectedCreatureOld().getPx();
+			cameraY = (float) evoBoard.getSelectedCreatureOld().getPy();
+			if (evoBoard.isUserControl()) cameraR = -PI / 2.0f - (float) evoBoard.getSelectedCreatureOld().getRotation();
 		} else {
 			cameraR = 0;
 		}
@@ -125,7 +125,7 @@ public class EvolvioApplet extends PApplet {
 		translate(Configuration.BOARD_WIDTH * 0.5f * Configuration.SCALE_TO_FIXBUG,
 				Configuration.BOARD_HEIGHT * 0.5f * Configuration.SCALE_TO_FIXBUG);
 		scale(zoom);
-		if (evoBoard.isUserControl() && evoBoard.getSelectedCreature() != null) {
+		if (evoBoard.isUserControl() && evoBoard.getSelectedCreatureOld() != null) {
 			rotate(cameraR);
 		}
 		translate(-cameraX * Configuration.SCALE_TO_FIXBUG, -cameraY * Configuration.SCALE_TO_FIXBUG);
@@ -166,11 +166,11 @@ public class EvolvioApplet extends PApplet {
 			dragMode = DragMode.SCREEN;
 		} else {
 			if (abs(mouseX - (windowHeight + 65)) <= 60 && abs(mouseY - 147) <= 60
-					&& evoBoard.getSelectedCreature() != null) {
-				cameraX = (float) evoBoard.getSelectedCreature().getPx();
-				cameraY = (float) evoBoard.getSelectedCreature().getPy();
+					&& evoBoard.getSelectedCreatureOld() != null) {
+				cameraX = (float) evoBoard.getSelectedCreatureOld().getPx();
+				cameraY = (float) evoBoard.getSelectedCreatureOld().getPy();
 				zoom = 16;
-			} else if (mouseY >= 95 && mouseY < 135 && evoBoard.getSelectedCreature() == null) {
+			} else if (mouseY >= 95 && mouseY < 135 && evoBoard.getSelectedCreatureOld() == null) {
 				if (mouseX >= windowHeight + 10 && mouseX < windowHeight + 230) {
 					resetZoom();
 				} else if (mouseX >= windowHeight + 240 && mouseX < windowHeight + 460) {
@@ -191,12 +191,12 @@ public class EvolvioApplet extends PApplet {
 					int buttonNum = mX + mY * 2;
 					BOARD_ACTIONS.get(buttonNum).doAction(evoBoard, clickedOnLeft);
 				}
-			} else if (mouseX >= height + 10 && mouseX < width - 50 && evoBoard.getSelectedCreature() == null) {
+			} else if (mouseX >= height + 10 && mouseX < width - 50 && evoBoard.getSelectedCreatureOld() == null) {
 				int listIndex = (mouseY - 150) / 70;
 				if (evoBoard.getCreatureInList(listIndex) != null) {
-					evoBoard.setSelectedCreature(evoBoard.getCreatureInList(listIndex));
-					cameraX = (float) evoBoard.getSelectedCreature().getPx();
-					cameraY = (float) evoBoard.getSelectedCreature().getPy();
+					evoBoard.setSelectedCreatureOld(evoBoard.getCreatureInList(listIndex));
+					cameraX = (float) evoBoard.getSelectedCreatureOld().getPx();
+					cameraY = (float) evoBoard.getSelectedCreatureOld().getPy();
 					zoom = 16;
 				}
 			}
@@ -227,10 +227,10 @@ public class EvolvioApplet extends PApplet {
 				cameraR = 0;
 				if (x >= 0 && x < Configuration.BOARD_WIDTH && y >= 0 && y < Configuration.BOARD_HEIGHT) {
 					for (SoftBody body : evoBoard.getSoftBodiesInPosition(x, y)) {
-						if (body instanceof Creature) {
+						if (body instanceof CreatureOld) {
 							float distance = dist(mX, mY, (float) body.getPx(), (float) body.getPy());
 							if (distance <= body.getRadius()) {
-								evoBoard.setSelectedCreature((Creature) body);
+								evoBoard.setSelectedCreatureOld((CreatureOld) body);
 								zoom = 16;
 							}
 						}

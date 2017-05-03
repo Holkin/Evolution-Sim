@@ -8,7 +8,7 @@ public class Eye {
 
 	private static final float CROSS_SIZE = 0.022f;
 
-	private final Creature creature;
+	private final CreatureOld creatureOld;
 	private final EvolvioApplet evolvioApplet;
 	final double angle;
 	final double distance;
@@ -25,8 +25,8 @@ public class Eye {
 		public double brightness;
 	}
 
-	public Eye(EvolvioApplet evolvioApplet, Creature creature, double angle, double distance) {
-		this.creature = creature;
+	public Eye(EvolvioApplet evolvioApplet, CreatureOld creatureOld, double angle, double distance) {
+		this.creatureOld = creatureOld;
 		this.evolvioApplet = evolvioApplet;
 		this.angle = angle;
 		this.distance = distance;
@@ -36,15 +36,15 @@ public class Eye {
 
 	public void see() {
 		
-		Point2D visionStart = creature.getPoint2D();
-		double visionTotalAngle = creature.getRotation() + angle;
+		Point2D visionStart = creatureOld.getPoint2D();
+		double visionTotalAngle = creatureOld.getRotation() + angle;
 
 		double endX = getVisionEndX();
 		double endY = getVisionEndY();
 
 		visionOccludedX = endX;
 		visionOccludedY = endY;
-		int c = creature.getBoard().getColorAt(endX, endY);
+		int c = creatureOld.getBoard().getColorAt(endX, endY);
 		eyeResult.hue = evolvioApplet.hue(c);
 		eyeResult.saturation = evolvioApplet.saturation(c);
 		eyeResult.brightness = evolvioApplet.brightness(c);
@@ -57,8 +57,8 @@ public class Eye {
 		rotationMatrix[1][0] = -rotationMatrix[0][1];
 		double visionLineLength = distance;
 		for (SoftBody body : potentialVisionOccluders) {
-			double x = body.getPx() - creature.getPx();
-			double y = body.getPy() - creature.getPy();
+			double x = body.getPx() - creatureOld.getPx();
+			double y = body.getPy() - creatureOld.getPy();
 			double r = body.getRadius();
 			double translatedX = rotationMatrix[0][0] * x + rotationMatrix[1][0] * y;
 			double translatedY = rotationMatrix[0][1] * x + rotationMatrix[1][1] * y;
@@ -87,7 +87,7 @@ public class Eye {
 		this.evolvioApplet.strokeWeight(Configuration.CREATURE_STROKE_WEIGHT);
 		float endX = (float) getVisionEndX();
 		float endY = (float) getVisionEndY();
-		this.evolvioApplet.line((float) (creature.getPx() * scaleUp), (float) (creature.getPy() * scaleUp),
+		this.evolvioApplet.line((float) (creatureOld.getPx() * scaleUp), (float) (creatureOld.getPy() * scaleUp),
 				endX * scaleUp, endY * scaleUp);
 		this.evolvioApplet.noStroke();
 		this.evolvioApplet.fill(visionUIcolor);
@@ -132,9 +132,9 @@ public class Eye {
 	}
 
 	private void addPVOs(int x, int y, List<SoftBody> PVOs) {
-		if (x >= 0 && x < Configuration.BOARD_WIDTH && y >= 0 && y < creature.getBoard().getBoardHeight()) {
-			for (SoftBody newCollider : creature.getBoard().getSoftBodiesInPosition(x, y)) {
-				if (!PVOs.contains(newCollider) && newCollider != creature) {
+		if (x >= 0 && x < Configuration.BOARD_WIDTH && y >= 0 && y < creatureOld.getBoard().getBoardHeight()) {
+			for (SoftBody newCollider : creatureOld.getBoard().getSoftBodiesInPosition(x, y)) {
+				if (!PVOs.contains(newCollider) && newCollider != creatureOld) {
 					PVOs.add(newCollider);
 				}
 			}
@@ -142,13 +142,13 @@ public class Eye {
 	}
 
 	private double getVisionEndX() {
-		double visionTotalAngle = creature.getRotation() + angle;
-		return creature.getPx() + distance * Math.cos(visionTotalAngle);
+		double visionTotalAngle = creatureOld.getRotation() + angle;
+		return creatureOld.getPx() + distance * Math.cos(visionTotalAngle);
 	}
 
 	private double getVisionEndY() {
-		double visionTotalAngle = creature.getRotation() + angle;
-		return creature.getPy() + distance * Math.sin(visionTotalAngle);
+		double visionTotalAngle = creatureOld.getRotation() + angle;
+		return creatureOld.getPy() + distance * Math.sin(visionTotalAngle);
 	}
 
 	public EyeResult getEyeResult() {

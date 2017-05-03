@@ -5,7 +5,7 @@ import java.util.Comparator;
 import javax.swing.SortOrder;
 
 public class CreatureComparators {
-	private static abstract class BaseComparator implements Comparator<Creature> {
+	private static abstract class BaseComparator implements Comparator<CreatureOld> {
 		private final SortOrder sortOrder;
 
 		public BaseComparator(SortOrder sortOrder) {
@@ -13,15 +13,15 @@ public class CreatureComparators {
 		}
 
 		@Override
-		public final int compare(Creature creature1, Creature creature2) {
+		public final int compare(CreatureOld creatureOld1, CreatureOld creatureOld2) {
 			if (sortOrder == SortOrder.UNSORTED) {
 				return 0;
 			}
-			int comparison = getComparison(creature1, creature2);
+			int comparison = getComparison(creatureOld1, creatureOld2);
 			return (sortOrder == SortOrder.ASCENDING) ? comparison : -comparison;
 		}
 
-		protected abstract int getComparison(Creature creature1, Creature creature2);
+		protected abstract int getComparison(CreatureOld creatureOld1, CreatureOld creatureOld2);
 	}
 
 	public static class NameComparator extends BaseComparator {
@@ -30,8 +30,8 @@ public class CreatureComparators {
 		}
 
 		@Override
-		public int getComparison(Creature creature1, Creature creature2) {
-			return creature2.getName().compareTo(creature1.getName());
+		public int getComparison(CreatureOld creatureOld1, CreatureOld creatureOld2) {
+			return creatureOld2.getName().compareTo(creatureOld1.getName());
 		}
 	}
 
@@ -41,8 +41,8 @@ public class CreatureComparators {
 		}
 
 		@Override
-		public int getComparison(Creature creature1, Creature creature2) {
-			return Double.compare(creature1.getEnergy(), creature2.getEnergy());
+		public int getComparison(CreatureOld creatureOld1, CreatureOld creatureOld2) {
+			return Double.compare(creatureOld1.getEnergy(), creatureOld2.getEnergy());
 		}
 	}
 
@@ -52,8 +52,8 @@ public class CreatureComparators {
 		}
 
 		@Override
-		public int getComparison(Creature creature1, Creature creature2) {
-			return (int) Math.signum(creature1.getBirthTime() - creature2.getBirthTime());
+		public int getComparison(CreatureOld creatureOld1, CreatureOld creatureOld2) {
+			return (int) Math.signum(creatureOld1.getBirthTime() - creatureOld2.getBirthTime());
 		}
 	}
 
@@ -63,8 +63,8 @@ public class CreatureComparators {
 		}
 
 		@Override
-		public int getComparison(Creature creature1, Creature creature2) {
-			return creature1.getGen() - creature2.getGen();
+		public int getComparison(CreatureOld creatureOld1, CreatureOld creatureOld2) {
+			return creatureOld1.getGen() - creatureOld2.getGen();
 		}
 	}
 }

@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class Creature extends SoftBody {
+public class CreatureOld extends SoftBody {
 	private static final List<CreatureAction> CREATURE_ACTIONS = Arrays.asList(new CreatureAction.AdjustHue(),
 			new CreatureAction.Accelerate(), new CreatureAction.Rotate(), new CreatureAction.Eat(),
 			new CreatureAction.Fight(), new CreatureAction.Reproduce(), new CreatureAction.AdjustMouthHue());
@@ -35,16 +35,16 @@ public class Creature extends SoftBody {
 
 	// TODO can the size of these constructors be reduced?
 
-	public Creature(EvolvioApplet evolvioApplet, Board board) {
+	public CreatureOld(EvolvioApplet evolvioApplet, Board board) {
 		this(evolvioApplet, board, evolvioApplet.random(0, Configuration.BOARD_WIDTH),
 				evolvioApplet.random(0, board.getBoardHeight()), 0, 0,
 				evolvioApplet.random(Configuration.MINIMUM_CREATURE_ENERGY, Configuration.MAXIMUM_CREATURE_ENERGY), 1,
 				evolvioApplet.random(0, 1), 1, 1, evolvioApplet.random(0, 2 * EvolvioApplet.PI), 0, "", "[PRIMORDIAL]",
 				true, null, 1, evolvioApplet.random(0, 1), new double[Configuration.NUM_EYES], new double[Configuration.NUM_EYES]);
 	}
-	public Creature(EvolvioApplet evolvioApplet, Board board, double tpx, double tpy, double tvx, double tvy,
-					double tenergy, double tdensity, double thue, double tsaturation, double tbrightness, double rot,
-					double tvr, String tname, String tparents, boolean mutateName, Brain brain, int tgen, double tmouthHue, double[] teyeDistances, double[] teyeAngles) {
+	public CreatureOld(EvolvioApplet evolvioApplet, Board board, double tpx, double tpy, double tvx, double tvy,
+                       double tenergy, double tdensity, double thue, double tsaturation, double tbrightness, double rot,
+                       double tvr, String tname, String tparents, boolean mutateName, Brain brain, int tgen, double tmouthHue, double[] teyeDistances, double[] teyeAngles) {
 		super(evolvioApplet, board, tpx, tpy, tvx, tvy, tenergy, tdensity, thue, tsaturation, tbrightness);
 		this.evolvioApplet = evolvioApplet;
 
@@ -119,7 +119,7 @@ public class Creature extends SoftBody {
 		this.evolvioApplet.strokeWeight(Configuration.CREATURE_STROKE_WEIGHT);
 		this.evolvioApplet.stroke(0, 0, 1);
 		this.evolvioApplet.fill(0, 0, 1);
-		if (this == getBoard().getSelectedCreature()) {
+		if (this == getBoard().getSelectedCreatureOld()) {
 			this.evolvioApplet.ellipse((float) (getPx() * scaleUp), (float) (getPy() * scaleUp),
 					(float) (radius * scaleUp + 1 + 75.0f / camZoom), (float) (radius * scaleUp + 1 + 75.0f / camZoom));
 		}
@@ -227,12 +227,12 @@ public class Creature extends SoftBody {
 			loseEnergy(getFightLevel() * Configuration.FIGHT_ENERGY * getEnergy() * timeStep);
 			for (int i = 0; i < getColliders().size(); i++) {
 				SoftBody collider = getColliders().get(i);
-				if (collider instanceof Creature) {
+				if (collider instanceof CreatureOld) {
 					float distance = EvolvioApplet.dist((float) getPx(), (float) getPy(), (float) collider.getPx(),
 							(float) collider.getPy());
 					double combinedRadius = getRadius() * Configuration.FIGHT_RANGE + collider.getRadius();
 					if (distance < combinedRadius) {
-						((Creature) collider).dropEnergy(getFightLevel() * Configuration.INJURED_ENERGY * timeStep);
+						((CreatureOld) collider).dropEnergy(getFightLevel() * Configuration.INJURED_ENERGY * timeStep);
 					}
 				}
 			}
@@ -289,7 +289,7 @@ public class Creature extends SoftBody {
 				getBoard().getSoftBodiesInPosition(x, y).remove(this);
 			}
 		}
-		if (getBoard().getSelectedCreature() == this) {
+		if (getBoard().getSelectedCreatureOld() == this) {
 			getBoard().unselect();
 		}
 	}
@@ -297,7 +297,7 @@ public class Creature extends SoftBody {
 	public void reproduce(double babySize, double timeStep) {
 		int highestGen = 0;
 		if (babySize >= 0) {
-			List<Creature> parents = new ArrayList<Creature>(0);
+			List<CreatureOld> parents = new ArrayList<CreatureOld>(0);
 			parents.add(this);
 			double availableEnergy = getBabyEnergy();
 			for (int i = 0; i < getColliders().size(); i++) {
@@ -305,13 +305,13 @@ public class Creature extends SoftBody {
 				/*
 				 * Must be a WILLING creature to also give birth.
 				 */
-				if (possibleParent instanceof Creature && ((Creature) possibleParent).brain.outputs()[5] > -1) {
+				if (possibleParent instanceof CreatureOld && ((CreatureOld) possibleParent).brain.outputs()[5] > -1) {
 					float distance = EvolvioApplet.dist((float) getPx(), (float) getPy(), (float) possibleParent.getPx(),
 							(float) possibleParent.getPy());
 					double combinedRadius = getRadius() * Configuration.FIGHT_RANGE + possibleParent.getRadius();
 					if (distance < combinedRadius) {
-						parents.add((Creature) possibleParent);
-						availableEnergy += ((Creature) possibleParent).getBabyEnergy();
+						parents.add((CreatureOld) possibleParent);
+						availableEnergy += ((CreatureOld) possibleParent).getBabyEnergy();
 					}
 				}
 			}
@@ -333,7 +333,7 @@ public class Creature extends SoftBody {
 				Brain newBrain = brain.evolve(parents);
 				for (int i = 0; i < parentsTotal; i++) {
 					int chosenIndex = (int) this.evolvioApplet.random(0, parents.size());
-					Creature parent = parents.get(chosenIndex);
+					CreatureOld parent = parents.get(chosenIndex);
 					parents.remove(chosenIndex);
 					parent.setEnergy(getEnergy() - babySize * (parent.getBabyEnergy() / availableEnergy));
 					newPX += parent.getPx() / parentsTotal;
@@ -353,7 +353,7 @@ public class Creature extends SoftBody {
 				}
 				newSaturation = 1;
 				newBrightness = 1;
-				getBoard().addCreature(new Creature(this.evolvioApplet, getBoard(), newPX, newPY, 0, 0, babySize,
+				getBoard().addCreature(new CreatureOld(this.evolvioApplet, getBoard(), newPX, newPY, 0, 0, babySize,
 						getDensity(), newHue, newSaturation, newBrightness,
 						this.evolvioApplet.random(0, 2 * EvolvioApplet.PI), 0, stitchName(parentNames),
 						andifyParents(parentNames), true, newBrain, highestGen + 1, newMouthHue, newEyeAngles, newEyeDistances));
