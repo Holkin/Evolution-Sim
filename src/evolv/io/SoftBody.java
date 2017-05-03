@@ -6,9 +6,9 @@ import java.util.List;
 
 public class SoftBody {
 	private static final float ENERGY_DENSITY = 1.0f
-			/ (Configuration.MINIMUM_SURVIVABLE_SIZE * Configuration.MINIMUM_SURVIVABLE_SIZE * EvolvioColor.PI);
+			/ (Configuration.MINIMUM_SURVIVABLE_SIZE * Configuration.MINIMUM_SURVIVABLE_SIZE * EvolvioApplet.PI);
 
-	private final EvolvioColor evolvioColor;
+	private final EvolvioApplet evolvioApplet;
 	private final Board board;
 	private final double birthTime;
 	/*
@@ -36,9 +36,9 @@ public class SoftBody {
 	private int SBIPMaxX;
 	private int SBIPMaxY;
 
-	public SoftBody(EvolvioColor evolvioColor, Board tb, double tpx, double tpy, double tvx, double tvy, double tenergy,
-			double tdensity, double thue, double tsaturation, double tbrightness) {
-		this.evolvioColor = evolvioColor;
+	public SoftBody(EvolvioApplet evolvioApplet, Board tb, double tpx, double tpy, double tvx, double tvy, double tenergy,
+					double tdensity, double thue, double tsaturation, double tbrightness) {
+		this.evolvioApplet = evolvioApplet;
 		px = tpx;
 		py = tpy;
 		vx = tvx;
@@ -117,7 +117,7 @@ public class SoftBody {
 		}
 		for (int i = 0; i < colliders.size(); i++) {
 			SoftBody collider = colliders.get(i);
-			float distance = EvolvioColor.dist((float) px, (float) py, (float) collider.px, (float) collider.py);
+			float distance = EvolvioApplet.dist((float) px, (float) py, (float) collider.px, (float) collider.py);
 			double combinedRadius = getRadius() + collider.getRadius();
 			if (distance < combinedRadius) {
 				double force = combinedRadius * Configuration.COLLISION_FORCE;
@@ -138,11 +138,11 @@ public class SoftBody {
 
 	public void drawSoftBody(float scaleUp) {
 		double radius = getRadius();
-		this.evolvioColor.stroke(0);
-		this.evolvioColor.strokeWeight(Configuration.CREATURE_STROKE_WEIGHT);
-		this.evolvioColor.fill((float) hue, (float) saturation, (float) brightness);
-		this.evolvioColor.ellipseMode(EvolvioColor.RADIUS);
-		this.evolvioColor.ellipse((float) (px * scaleUp), (float) (py * scaleUp), (float) (radius * scaleUp),
+		this.evolvioApplet.stroke(0);
+		this.evolvioApplet.strokeWeight(Configuration.CREATURE_STROKE_WEIGHT);
+		this.evolvioApplet.fill((float) hue, (float) saturation, (float) brightness);
+		this.evolvioApplet.ellipseMode(EvolvioApplet.RADIUS);
+		this.evolvioApplet.ellipse((float) (px * scaleUp), (float) (py * scaleUp), (float) (radius * scaleUp),
 				(float) (radius * scaleUp));
 	}
 

@@ -13,7 +13,7 @@ import processing.core.PFont;
 import processing.event.KeyEvent;
 import processing.event.MouseEvent;
 
-public class EvolvioColor extends PApplet {
+public class EvolvioApplet extends PApplet {
 	private enum DragMode{
 		NONE,
 		SCREEN,
@@ -26,7 +26,7 @@ public class EvolvioColor extends PApplet {
 			new BoardAction.ChangeTextSaveInterval(), new BoardAction.ChangePlaySpeed(),
 			new BoardAction.ToggleRender());
 
-	private final int seed = parseInt(random(1000000));
+	private final int seed = 1001;//parseInt(random(1000000));
 	private final Peripherals peripherals = new Peripherals();
 	private final Renderer<Board> blankBoardRenderer = new BlankBoardRenderer();
 
@@ -45,7 +45,7 @@ public class EvolvioColor extends PApplet {
 	private boolean draggedFar = false;
 
 	public static void main(String[] passedArgs) {
-		String[] appletArgs = new String[] { "evolv.io.EvolvioColor" };
+		String[] appletArgs = new String[] { "evolv.io.EvolvioApplet" };
 		if (passedArgs != null) {
 			PApplet.main(concat(appletArgs, passedArgs));
 		} else {

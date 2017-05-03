@@ -1,5 +1,8 @@
 package evolv.io;
 
+import evolv.io.model.World;
+import evolv.io.renderers.TileRenderer;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -7,6 +10,8 @@ import java.util.Comparator;
 import java.util.List;
 
 import javax.swing.SortOrder;
+
+import static evolv.io.Configuration.*;
 
 public class Board {
 	private static final String[] SORT_METRIC_NAMES = { "Biggest", "Smallest", "Youngest", "Oldest", "A to Z", "Z to A",
@@ -21,10 +26,8 @@ public class Board {
 			new CreatureComparators.GenComparator(SortOrder.DESCENDING),
 			new CreatureComparators.GenComparator(SortOrder.ASCENDING), };
 
-	private final EvolvioColor evolvioColor;
+	private final EvolvioApplet evolvioApplet;
 	private final int randomSeed;
-	// Board
-	private final Tile[][] tiles = new Tile[Configuration.BOARD_WIDTH][Configuration.BOARD_HEIGHT];
 
 	// Creature
 	private final List<SoftBody>[][] softBodiesInPositions = new List[Configuration.BOARD_WIDTH][Configuration.BOARD_HEIGHT];
@@ -63,35 +66,58 @@ public class Board {
 	private boolean userControl;
 	private boolean render = true;
 
-	public Board(EvolvioColor evolvioColor, int randomSeed) {
-		this.rockColor = evolvioColor.color(0, 0, 0.5f);
-		this.backgroundColor = evolvioColor.color(0, 0, 0.1f);
-		this.buttonColor = evolvioColor.color(0.82f, 0.8f, 0.7f);
-		this.evolvioColor = evolvioColor;
-		this.randomSeed = randomSeed;
-		this.evolvioColor.noiseSeed(randomSeed);
-		this.evolvioColor.randomSeed(randomSeed);
-		for (int x = 0; x < Configuration.BOARD_WIDTH; x++) {
-			for (int y = 0; y < Configuration.BOARD_HEIGHT; y++) {
-				float bigForce = EvolvioColor.pow(((float) y) / Configuration.BOARD_HEIGHT, 0.5f);
-				float fertility = this.evolvioColor.noise(
-						x * Configuration.NOISE_STEP_SIZE * 3,
-						y * Configuration.NOISE_STEP_SIZE * 3
-					) * (1 - bigForce) * 5.0f
-				+ this.evolvioColor.noise(
-						x * Configuration.NOISE_STEP_SIZE * 0.5f,
-						y * Configuration.NOISE_STEP_SIZE * 0.5f
-					) * bigForce * 5.0f
-				- 1.5f;
-				float climateType = this.evolvioColor.noise(
-						x * Configuration.NOISE_STEP_SIZE * 0.2f + 10000,
-						y * Configuration.NOISE_STEP_SIZE * 0.2f + 10000
-				) * 1.63f - 0.4f;
+	// TODO move this somewhere
+	private World world;
+	private final TileRenderer tileRenderer;
 
-				climateType = Math.min(Math.max(climateType, 0), 0.8f);
-				tiles[x][y] = new Tile(this.evolvioColor, this, x, y, fertility, climateType);
+	public Board(EvolvioApplet evolvioApplet, int randomSeed) {
+		this.rockColor = evolvioApplet.color(0, 0, 0.5f);
+		this.backgroundColor = evolvioApplet.color(0, 0, 0.1f);
+		this.buttonColor = evolvioApplet.color(0.82f, 0.8f, 0.7f);
+		this.evolvioApplet = evolvioApplet;
+		this.randomSeed = randomSeed;
+		this.evolvioApplet.noiseSeed(randomSeed);
+		this.evolvioApplet.randomSeed(randomSeed);
+
+		// ==========================================
+		this.world = new World(Configuration.BOARD_WIDTH, Configuration.BOARD_HEIGHT);
+		this.world.recreate(
+				(x,y) -> {
+                    double climateType = this.evolvioApplet.noise(
+                            x * Configuration.NOISE_STEP_SIZE * 0.2f + 10000,
+                            y * Configuration.NOISE_STEP_SIZE * 0.2f + 10000
+                    ) * 1.63f - 0.4f;
+                    return Math.min(Math.max(climateType, 0), 0.8f);
+                },
+				(x,y) -> {
+					double bigForce = Math.pow(1.0 * x / Configuration.BOARD_HEIGHT, 0.5);
+					return this.evolvioApplet.noise(
+							x * Configuration.NOISE_STEP_SIZE * 3,
+							y * Configuration.NOISE_STEP_SIZE * 3
+						) * (1 - bigForce) * 5.0f
+							+ this.evolvioApplet.noise(
+							x * Configuration.NOISE_STEP_SIZE * 0.5f,
+							y * Configuration.NOISE_STEP_SIZE * 0.5f
+						) * bigForce * 5.0f - 1.5f;
+		});
+		this.world.setFoodGen((fertility, foodLevel, growthRate) -> {
+			if (fertility < Configuration.MAX_FERTILITY) {
+				if (growthRate > 0) {
+					// Food is growing. Exponentially approach maxGrowthLevel.
+					if (foodLevel < MAX_GROWTH_LEVEL) {
+						double newDistToMax = (MAX_GROWTH_LEVEL - foodLevel) *
+								Math.exp(-growthRate * fertility * FOOD_GROWTH_RATE);
+						return  (MAX_GROWTH_LEVEL - newDistToMax) - foodLevel;
+					}
+				} else {
+					// Food is dying off. Exponentially approach 0.
+					return foodLevel * Math.exp(growthRate * FOOD_GROWTH_RATE) - foodLevel;
+				}
 			}
-		}
+			return 0;
+		});
+		this.tileRenderer = new TileRenderer(evolvioApplet);
+		// ==========================================
 
 		for (int x = 0; x < Configuration.BOARD_WIDTH; x++) {
 			for (int y = 0; y < Configuration.BOARD_HEIGHT; y++) {
@@ -100,10 +126,10 @@ public class Board {
 		}
 
 		for (int i = 0; i < Configuration.ROCKS_TO_ADD; i++) {
-			rocks.add(new SoftBody(this.evolvioColor, this, this.evolvioColor.random(0, Configuration.BOARD_WIDTH),
-					this.evolvioColor.random(0, Configuration.BOARD_HEIGHT), 0, 0, getRandomSize(),
-					Configuration.ROCK_DENSITY, this.evolvioColor.hue(rockColor),
-					this.evolvioColor.saturation(rockColor), this.evolvioColor.brightness(rockColor)));
+			rocks.add(new SoftBody(this.evolvioApplet, this, this.evolvioApplet.random(0, Configuration.BOARD_WIDTH),
+					this.evolvioApplet.random(0, Configuration.BOARD_HEIGHT), 0, 0, getRandomSize(),
+					Configuration.ROCK_DENSITY, this.evolvioApplet.hue(rockColor),
+					this.evolvioApplet.saturation(rockColor), this.evolvioApplet.brightness(rockColor)));
 		}
 
 		this.fileSaveCounts = new int[4];
@@ -118,13 +144,9 @@ public class Board {
 		if (!render) {
 			return;
 		}
-		for (Tile[] tileArray : tiles) {
-			for (Tile tile : tileArray) {
-				tile.drawTile(scaleUp, camZoom);
-			}
-		}
+		drawTiles(scaleUp, camZoom);
 		if (mouseX >= 0 && mouseX < Configuration.BOARD_WIDTH && mouseY >= 0 && mouseY < Configuration.BOARD_HEIGHT) {
-			tiles[mouseX][mouseY].drawEnergy(scaleUp, camZoom);
+			tileRenderer.drawTileInfo(getTile(mouseX, mouseY), scaleUp, camZoom);
 		}
 		for (SoftBody rock : rocks) {
 			rock.drawSoftBody(scaleUp);
@@ -134,26 +156,31 @@ public class Board {
 		}
 	}
 
+	private void drawTiles(float scaleUp, float camZoom) {
+		Arrays.stream(world.getTiles()).flatMap(Arrays::stream)
+				.forEach(tile -> tileRenderer.drawTile(tile, scaleUp));
+	}
+
 	public void drawUI(float scaleUp, float camZoom, double timeStep, int x1, int y1, int x2, int y2) {
-		this.evolvioColor.fill(0, 0, 0);
-		this.evolvioColor.noStroke();
-		this.evolvioColor.rect(x1, y1, x2 - x1, y2 - y1);
+		this.evolvioApplet.fill(0, 0, 0);
+		this.evolvioApplet.noStroke();
+		this.evolvioApplet.rect(x1, y1, x2 - x1, y2 - y1);
 
-		this.evolvioColor.pushMatrix();
-		this.evolvioColor.translate(x1, y1);
+		this.evolvioApplet.pushMatrix();
+		this.evolvioApplet.translate(x1, y1);
 
-		this.evolvioColor.fill(0, 0, 1);
-		this.evolvioColor.textAlign(EvolvioColor.RIGHT);
-		this.evolvioColor.text(EvolvioColor.nfs(camZoom * 100, 0, 3) + " %", 0, y2 - y1 - 30);
-		this.evolvioColor.textAlign(EvolvioColor.LEFT);
-		this.evolvioColor.textSize(48);
-		String yearText = "Year " + EvolvioColor.nf((float) year, 0, 2);
-		this.evolvioColor.text(yearText, 10, 48);
-		float seasonTextXCoor = this.evolvioColor.textWidth(yearText) + 50;
-		this.evolvioColor.textSize(20);
-		this.evolvioColor.text("Population: " + creatures.size(), 10, 80);
+		this.evolvioApplet.fill(0, 0, 1);
+		this.evolvioApplet.textAlign(EvolvioApplet.RIGHT);
+		this.evolvioApplet.text(EvolvioApplet.nfs(camZoom * 100, 0, 3) + " %", 0, y2 - y1 - 30);
+		this.evolvioApplet.textAlign(EvolvioApplet.LEFT);
+		this.evolvioApplet.textSize(48);
+		String yearText = "Year " + EvolvioApplet.nf((float) year, 0, 2);
+		this.evolvioApplet.text(yearText, 10, 48);
+		float seasonTextXCoor = this.evolvioApplet.textWidth(yearText) + 50;
+		this.evolvioApplet.textSize(20);
+		this.evolvioApplet.text("Population: " + creatures.size(), 10, 80);
 		String[] seasons = { "Winter", "Spring", "Summer", "Autumn" };
-		this.evolvioColor.text(seasons[(int) (getSeason() * 4)] + "\nSeed: " + randomSeed, seasonTextXCoor, 30);
+		this.evolvioApplet.text(seasons[(int) (getSeason() * 4)] + "\nSeed: " + randomSeed, seasonTextXCoor, 30);
 
 		if (selectedCreature == null) {
 			Collections.sort(creatures, CREATURE_COMPARATORS[sortMetric]);
@@ -172,45 +199,45 @@ public class Board {
 					list[i].setPreferredRank(list[i].getPreferredRank() + ((i - list[i].getPreferredRank()) * 0.4f));
 					float y = y1 + 175 + 70 * list[i].getPreferredRank();
 					drawCreature(list[i], 45, y + 5, 2.3f, scaleUp);
-					this.evolvioColor.textSize(24);
-					this.evolvioColor.textAlign(EvolvioColor.LEFT);
-					this.evolvioColor.noStroke();
-					this.evolvioColor.fill(0.333f, 1, 0.4f);
+					this.evolvioApplet.textSize(24);
+					this.evolvioApplet.textAlign(EvolvioApplet.LEFT);
+					this.evolvioApplet.noStroke();
+					this.evolvioApplet.fill(0.333f, 1, 0.4f);
 					float multi = (x2 - x1 - 200);
 					if (list[i].getEnergy() > 0) {
-						this.evolvioColor.rect(85, y + 5, (float) (multi * list[i].getEnergy() / maxEnergy), 25);
+						this.evolvioApplet.rect(85, y + 5, (float) (multi * list[i].getEnergy() / maxEnergy), 25);
 					}
 					if (list[i].getEnergy() > 1) {
-						this.evolvioColor.fill(0.333f, 1, 0.8f);
-						this.evolvioColor.rect(85 + (float) (multi / maxEnergy), y + 5,
+						this.evolvioApplet.fill(0.333f, 1, 0.8f);
+						this.evolvioApplet.rect(85 + (float) (multi / maxEnergy), y + 5,
 								(float) (multi * (list[i].getEnergy() - 1) / maxEnergy), 25);
 					}
-					this.evolvioColor.fill(0, 0, 1);
-					this.evolvioColor.text(
+					this.evolvioApplet.fill(0, 0, 1);
+					this.evolvioApplet.text(
 							list[i].getName() + " [" + list[i].getId() + "] (" + toAge(list[i].getAge()) + ")", 90, y);
-					this.evolvioColor.text("Energy: " + EvolvioColor.nf(100 * (float) (list[i].getEnergy()), 0, 2), 90,
+					this.evolvioApplet.text("Energy: " + EvolvioApplet.nf(100 * (float) (list[i].getEnergy()), 0, 2), 90,
 							y + 25);
 				}
 			}
-			this.evolvioColor.noStroke();
-			this.evolvioColor.fill(buttonColor);
-			this.evolvioColor.rect(10, 95, 220, 40);
-			this.evolvioColor.rect(240, 95, 220, 40);
-			this.evolvioColor.fill(0, 0, 1);
-			this.evolvioColor.textAlign(EvolvioColor.CENTER);
-			this.evolvioColor.text("Reset zoom", 120, 123);
-			this.evolvioColor.text("Sort by: " + SORT_METRIC_NAMES[sortMetric], 350, 123);
+			this.evolvioApplet.noStroke();
+			this.evolvioApplet.fill(buttonColor);
+			this.evolvioApplet.rect(10, 95, 220, 40);
+			this.evolvioApplet.rect(240, 95, 220, 40);
+			this.evolvioApplet.fill(0, 0, 1);
+			this.evolvioApplet.textAlign(EvolvioApplet.CENTER);
+			this.evolvioApplet.text("Reset zoom", 120, 123);
+			this.evolvioApplet.text("Sort by: " + SORT_METRIC_NAMES[sortMetric], 350, 123);
 
-			this.evolvioColor.textSize(15);
+			this.evolvioApplet.textSize(15);
 			/*
 			 * TODO put these button texts in the same place as the board
 			 * actions
 			 */
 			String[] buttonTexts = { "Brain Control",
-					"Spawn Chance " + EvolvioColor.nf(spawnChance, 0, 2) + "%", "Screenshot now",
-					"-   Image every " + EvolvioColor.nf((float) imageSaveInterval, 0, 2) + " years   +",
+					"Spawn Chance " + EvolvioApplet.nf(spawnChance, 0, 2) + "%", "Screenshot now",
+					"-   Image every " + EvolvioApplet.nf((float) imageSaveInterval, 0, 2) + " years   +",
 					"Text file now",
-					"-    Text every " + EvolvioColor.nf((float) textSaveInterval, 0, 2) + " years    +",
+					"-    Text every " + EvolvioApplet.nf((float) textSaveInterval, 0, 2) + " years    +",
 					"-    Play Speed (" + playSpeed + "x)    +", "Toggle Rendering" };
 			if (userControl) {
 				buttonTexts[0] = "Keyboard Control";
@@ -218,96 +245,96 @@ public class Board {
 
 			for (int i = 0; i < 8; i++) {
 				float x = (i % 2) * 230 + 10;
-				float y = EvolvioColor.floor(i / 2) * 50 + 570;
-				this.evolvioColor.fill(buttonColor);
-				this.evolvioColor.rect(x, y, 220, 40);
+				float y = EvolvioApplet.floor(i / 2) * 50 + 570;
+				this.evolvioApplet.fill(buttonColor);
+				this.evolvioApplet.rect(x, y, 220, 40);
 				if (i >= 2 && i < 6) {
 					// TODO can pow be replaced with something faster?
 					double flashAlpha = 1.0f
 							* Math.pow(0.5f, (year - fileSaveTimes[i - 2]) * Configuration.FLASH_SPEED);
-					this.evolvioColor.fill(0, 0, 1, (float) flashAlpha);
-					this.evolvioColor.rect(x, y, 220, 40);
+					this.evolvioApplet.fill(0, 0, 1, (float) flashAlpha);
+					this.evolvioApplet.rect(x, y, 220, 40);
 				}
-				this.evolvioColor.fill(0, 0, 1, 1);
-				this.evolvioColor.text(buttonTexts[i], x + 110, y + 17);
+				this.evolvioApplet.fill(0, 0, 1, 1);
+				this.evolvioApplet.text(buttonTexts[i], x + 110, y + 17);
 				if (i == 0) {
 				} else if (i == 1) {
-					this.evolvioColor.text("-" + EvolvioColor.nf(Configuration.SPAWN_CHANCE_INCREMENT, 0, 2)
-							+ "                    +" + EvolvioColor.nf(Configuration.SPAWN_CHANCE_INCREMENT, 0, 2),
+					this.evolvioApplet.text("-" + EvolvioApplet.nf(Configuration.SPAWN_CHANCE_INCREMENT, 0, 2)
+							+ "                    +" + EvolvioApplet.nf(Configuration.SPAWN_CHANCE_INCREMENT, 0, 2),
 							x + 110, y + 37);
 				} else if (i <= 5) {
-					this.evolvioColor.text(getNextFileName(i - 2), x + 110, y + 37);
+					this.evolvioApplet.text(getNextFileName(i - 2), x + 110, y + 37);
 				}
 			}
 		} else {
 			float energyUsage = (float) selectedCreature.getEnergyUsage(timeStep);
-			this.evolvioColor.noStroke();
+			this.evolvioApplet.noStroke();
 			if (energyUsage <= 0) {
-				this.evolvioColor.fill(0, 1, 0.5f);
+				this.evolvioApplet.fill(0, 1, 0.5f);
 			} else {
-				this.evolvioColor.fill(0.33f, 1, 0.4f);
+				this.evolvioApplet.fill(0.33f, 1, 0.4f);
 			}
 			float EUbar = 20 * energyUsage;
-			this.evolvioColor.rect(110, 280, Math.min(Math.max(EUbar, -110), 110), 25);
+			this.evolvioApplet.rect(110, 280, Math.min(Math.max(EUbar, -110), 110), 25);
 			if (EUbar < -110) {
-				this.evolvioColor.rect(0, 280, 25, (-110 - EUbar) * 20 + 25);
+				this.evolvioApplet.rect(0, 280, 25, (-110 - EUbar) * 20 + 25);
 			} else if (EUbar > 110) {
 				float h = (EUbar - 110) * 20 + 25;
-				this.evolvioColor.rect(185, 280 - h, 25, h);
+				this.evolvioApplet.rect(185, 280 - h, 25, h);
 			}
-			this.evolvioColor.fill(0, 0, 1);
-			this.evolvioColor.text("Name: " + selectedCreature.getName(), 10, 225);
-			this.evolvioColor.text(
-					"Energy: " + EvolvioColor.nf(100 * (float) selectedCreature.getEnergy(), 0, 2) + " yums", 10, 250);
-			this.evolvioColor.text("" + EvolvioColor.nf(100 * energyUsage, 0, 2) + " yums/year", 10, 275);
+			this.evolvioApplet.fill(0, 0, 1);
+			this.evolvioApplet.text("Name: " + selectedCreature.getName(), 10, 225);
+			this.evolvioApplet.text(
+					"Energy: " + EvolvioApplet.nf(100 * (float) selectedCreature.getEnergy(), 0, 2) + " yums", 10, 250);
+			this.evolvioApplet.text("" + EvolvioApplet.nf(100 * energyUsage, 0, 2) + " yums/year", 10, 275);
 
-			this.evolvioColor.text("ID: " + selectedCreature.getId(), 10, 325);
-			this.evolvioColor.text("X: " + EvolvioColor.nf((float) selectedCreature.getPx(), 0, 2), 10, 350);
-			this.evolvioColor.text("Y: " + EvolvioColor.nf((float) selectedCreature.getPy(), 0, 2), 10, 375);
-			this.evolvioColor.text("Rotation: " + EvolvioColor.nf((float) selectedCreature.getRotation(), 0, 2), 10,
+			this.evolvioApplet.text("ID: " + selectedCreature.getId(), 10, 325);
+			this.evolvioApplet.text("X: " + EvolvioApplet.nf((float) selectedCreature.getPx(), 0, 2), 10, 350);
+			this.evolvioApplet.text("Y: " + EvolvioApplet.nf((float) selectedCreature.getPy(), 0, 2), 10, 375);
+			this.evolvioApplet.text("Rotation: " + EvolvioApplet.nf((float) selectedCreature.getRotation(), 0, 2), 10,
 					400);
-			this.evolvioColor.text("Birthday: " + toDate(selectedCreature.getBirthTime()), 10, 425);
-			this.evolvioColor.text("(" + toAge(selectedCreature.getAge()) + ")", 10, 450);
-			this.evolvioColor.text("Generation: " + selectedCreature.getGen(), 10, 475);
-			this.evolvioColor.text("Parents: " + selectedCreature.getParents(), 10, 500, 210, 255);
-			this.evolvioColor.text("Hue: " + EvolvioColor.nf((float) (selectedCreature.getHue()), 0, 2), 10, 550, 210,
+			this.evolvioApplet.text("Birthday: " + toDate(selectedCreature.getBirthTime()), 10, 425);
+			this.evolvioApplet.text("(" + toAge(selectedCreature.getAge()) + ")", 10, 450);
+			this.evolvioApplet.text("Generation: " + selectedCreature.getGen(), 10, 475);
+			this.evolvioApplet.text("Parents: " + selectedCreature.getParents(), 10, 500, 210, 255);
+			this.evolvioApplet.text("Hue: " + EvolvioApplet.nf((float) (selectedCreature.getHue()), 0, 2), 10, 550, 210,
 					255);
-			this.evolvioColor.text("Mouth Hue: " + EvolvioColor.nf((float) (selectedCreature.getMouthHue()), 0, 2), 10,
+			this.evolvioApplet.text("Mouth Hue: " + EvolvioApplet.nf((float) (selectedCreature.getMouthHue()), 0, 2), 10,
 					575, 210, 255);
 
 			if (userControl) {
-				this.evolvioColor.text(
+				this.evolvioApplet.text(
 						"Controls:\nUp/Down: Move\nLeft/Right: Rotate\nSpace: Eat\nF: Fight\nV: Vomit\nU, J: Change color"
 								+ "\nI, K: Change mouth color\nB: Give birth (Not possible if under "
 								+ Math.round((Configuration.MANUAL_BIRTH_SIZE + 1) * 100) + " yums)",
 						10, 625, 250, 400);
 			}
-			this.evolvioColor.pushMatrix();
-			this.evolvioColor.translate(400, 80);
-			float apX = EvolvioColor
-					.round(((this.evolvioColor.mouseX) - 400 - Brain.NEURON_OFFSET_X - x1) / 50.0f / 1.2f);
-			float apY = EvolvioColor.round((this.evolvioColor.mouseY - 80 - Brain.NEURON_OFFSET_Y - y1) / 50.0f);
+			this.evolvioApplet.pushMatrix();
+			this.evolvioApplet.translate(400, 80);
+			float apX = EvolvioApplet
+					.round(((this.evolvioApplet.mouseX) - 400 - Brain.NEURON_OFFSET_X - x1) / 50.0f / 1.2f);
+			float apY = EvolvioApplet.round((this.evolvioApplet.mouseY - 80 - Brain.NEURON_OFFSET_Y - y1) / 50.0f);
 			selectedCreature.drawBrain(50, (int) apX, (int) apY);
-			this.evolvioColor.popMatrix();
+			this.evolvioApplet.popMatrix();
 		}
 
 		drawPopulationGraph(x1, x2, y1, y2);
-		this.evolvioColor.fill(0, 0, 0);
-		this.evolvioColor.textAlign(EvolvioColor.RIGHT);
-		this.evolvioColor.textSize(24);
-		this.evolvioColor.text("Population: " + creatures.size(), x2 - x1 - 10, y2 - y1 - 10);
-		this.evolvioColor.popMatrix();
+		this.evolvioApplet.fill(0, 0, 0);
+		this.evolvioApplet.textAlign(EvolvioApplet.RIGHT);
+		this.evolvioApplet.textSize(24);
+		this.evolvioApplet.text("Population: " + creatures.size(), x2 - x1 - 10, y2 - y1 - 10);
+		this.evolvioApplet.popMatrix();
 
-		this.evolvioColor.pushMatrix();
-		this.evolvioColor.translate(x2, y1);
+		this.evolvioApplet.pushMatrix();
+		this.evolvioApplet.translate(x2, y1);
 		if (selectedCreature == null) {
-			this.evolvioColor.textAlign(EvolvioColor.RIGHT);
-			this.evolvioColor.textSize(24);
-			this.evolvioColor.text("Temperature", -10, 24);
+			this.evolvioApplet.textAlign(EvolvioApplet.RIGHT);
+			this.evolvioApplet.textSize(24);
+			this.evolvioApplet.text("Temperature", -10, 24);
 			drawThermometer(-45, 30, 20, 660, temperature, Configuration.THERMOMETER_MINIMUM,
-					Configuration.THERMOMETER_MAXIMUM, this.evolvioColor.color(0, 1, 1));
+					Configuration.THERMOMETER_MAXIMUM, this.evolvioApplet.color(0, 1, 1));
 		}
-		this.evolvioColor.popMatrix();
+		this.evolvioApplet.popMatrix();
 
 		if (selectedCreature != null) {
 			drawCreature(selectedCreature, x1 + 65, y1 + 147, 2.3f, scaleUp);
@@ -316,8 +343,8 @@ public class Board {
 
 	private void drawPopulationGraph(float x1, float x2, float y1, float y2) {
 		float barWidth = (x2 - x1) / ((Configuration.POPULATION_HISTORY_LENGTH));
-		this.evolvioColor.noStroke();
-		this.evolvioColor.fill(0.33333f, 1, 0.6f);
+		this.evolvioApplet.noStroke();
+		this.evolvioApplet.fill(0.33333f, 1, 0.6f);
 		int maxPopulation = 0;
 		for (int population : populationHistory) {
 			if (population > maxPopulation) {
@@ -326,7 +353,7 @@ public class Board {
 		}
 		for (int i = 0; i < Configuration.POPULATION_HISTORY_LENGTH; i++) {
 			float h = (((float) populationHistory[i]) / maxPopulation) * (y2 - 770);
-			this.evolvioColor.rect((Configuration.POPULATION_HISTORY_LENGTH - 1 - i) * barWidth, y2 - h, barWidth, h);
+			this.evolvioApplet.rect((Configuration.POPULATION_HISTORY_LENGTH - 1 - i) * barWidth, y2 - h, barWidth, h);
 		}
 	}
 
@@ -336,7 +363,7 @@ public class Board {
 		if (type >= 2) {
 			ending = ".txt";
 		}
-		return Configuration.INITIAL_FILE_NAME + "/" + modes[type] + "/" + EvolvioColor.nf(fileSaveCounts[type], 5)
+		return Configuration.INITIAL_FILE_NAME + "/" + modes[type] + "/" + EvolvioApplet.nf(fileSaveCounts[type], 5)
 				+ ending;
 	}
 
@@ -351,20 +378,9 @@ public class Board {
 			populationHistory[0] = creatures.size();
 		}
 		temperature = getGrowthRate(getSeason());
-		double tempChangeIntoThisFrame = temperature - getGrowthRate(getSeason() - timeStep);
-		double tempChangeOutOfThisFrame = getGrowthRate(getSeason() + timeStep) - temperature;
-		if (tempChangeIntoThisFrame * tempChangeOutOfThisFrame <= 0) {
-			// Temperature change flipped direction.
-			for (Tile[] tileArray : tiles) {
-				for (Tile tile : tileArray) {
-					tile.iterate();
-				}
-			}
-		}
-		/*
-		 * for(int x = 0; x < boardWidth; x++) { for(int y = 0; y < boardHeight;
-		 * y++) { tiles[x][y].iterate(this, year); } }
-		 */
+		// ======================
+		world.update(getGrowthRate(prevYear)*timeStep); // TODO refactor growthRate scaling
+		// ======================
 		for (int i = 0; i < creatures.size(); i++) {
 			creatures.get(i).setPreviousEnergy();
 		}
@@ -380,33 +396,33 @@ public class Board {
 			me.useBrain(timeStep, !userControl);
 			if (userControl) {
 				if (me == selectedCreature) {
-					if (this.evolvioColor.keyPressed) {
-						if (this.evolvioColor.key == EvolvioColor.CODED) {
-							if (this.evolvioColor.keyCode == EvolvioColor.UP)
+					if (this.evolvioApplet.keyPressed) {
+						if (this.evolvioApplet.key == EvolvioApplet.CODED) {
+							if (this.evolvioApplet.keyCode == EvolvioApplet.UP)
 								me.accelerate(0.04f, timeStep * Configuration.TIMESTEPS_PER_YEAR);
-							if (this.evolvioColor.keyCode == EvolvioColor.DOWN)
+							if (this.evolvioApplet.keyCode == EvolvioApplet.DOWN)
 								me.accelerate(-0.04f, timeStep * Configuration.TIMESTEPS_PER_YEAR);
-							if (this.evolvioColor.keyCode == EvolvioColor.LEFT)
+							if (this.evolvioApplet.keyCode == EvolvioApplet.LEFT)
 								me.rotate(-0.1f, timeStep * Configuration.TIMESTEPS_PER_YEAR);
-							if (this.evolvioColor.keyCode == EvolvioColor.RIGHT)
+							if (this.evolvioApplet.keyCode == EvolvioApplet.RIGHT)
 								me.rotate(0.1f, timeStep * Configuration.TIMESTEPS_PER_YEAR);
 						} else {
-							if (this.evolvioColor.key == ' ')
+							if (this.evolvioApplet.key == ' ')
 								me.eat(0.1f, timeStep * Configuration.TIMESTEPS_PER_YEAR);
-							if (this.evolvioColor.key == 'v' || this.evolvioColor.key == 'V')
+							if (this.evolvioApplet.key == 'v' || this.evolvioApplet.key == 'V')
 								me.eat(-0.1f, timeStep * Configuration.TIMESTEPS_PER_YEAR);
-							if (this.evolvioColor.key == 'f' || this.evolvioColor.key == 'F')
+							if (this.evolvioApplet.key == 'f' || this.evolvioApplet.key == 'F')
 								me.fight(0.5f, timeStep * Configuration.TIMESTEPS_PER_YEAR);
-							if (this.evolvioColor.key == 'u' || this.evolvioColor.key == 'U')
+							if (this.evolvioApplet.key == 'u' || this.evolvioApplet.key == 'U')
 								me.setHue(me.getHue() + 0.02f);
-							if (this.evolvioColor.key == 'j' || this.evolvioColor.key == 'J')
+							if (this.evolvioApplet.key == 'j' || this.evolvioApplet.key == 'J')
 								me.setHue(me.getHue() - 0.02f);
 
-							if (this.evolvioColor.key == 'i' || this.evolvioColor.key == 'I')
+							if (this.evolvioApplet.key == 'i' || this.evolvioApplet.key == 'I')
 								me.setMouthHue(me.getMouthHue() + 0.02f);
-							if (this.evolvioColor.key == 'k' || this.evolvioColor.key == 'K')
+							if (this.evolvioApplet.key == 'k' || this.evolvioApplet.key == 'K')
 								me.setMouthHue(me.getMouthHue() - 0.02f);
-							if (this.evolvioColor.key == 'b' || this.evolvioColor.key == 'B') {
+							if (this.evolvioApplet.key == 'b' || this.evolvioApplet.key == 'B') {
 								if (!isPressingKeyB) {
 									me.reproduce(Configuration.MANUAL_BIRTH_SIZE, timeStep);
 								}
@@ -460,42 +476,42 @@ public class Board {
 
 	private void drawThermometer(float x1, float y1, float w, float h, double prog, double min, double max,
 			int fillColor) {
-		this.evolvioColor.noStroke();
-		this.evolvioColor.fill(0, 0, 0.2f);
-		this.evolvioColor.rect(x1, y1, w, h);
-		this.evolvioColor.fill(fillColor);
+		this.evolvioApplet.noStroke();
+		this.evolvioApplet.fill(0, 0, 0.2f);
+		this.evolvioApplet.rect(x1, y1, w, h);
+		this.evolvioApplet.fill(fillColor);
 		double proportionFilled = (prog - min) / (max - min);
-		this.evolvioColor.rect(x1, (float) (y1 + h * (1 - proportionFilled)), w, (float) (proportionFilled * h));
+		this.evolvioApplet.rect(x1, (float) (y1 + h * (1 - proportionFilled)), w, (float) (proportionFilled * h));
 
 		double zeroHeight = (0 - min) / (max - min);
 		double zeroLineY = y1 + h * (1 - zeroHeight);
-		this.evolvioColor.textAlign(EvolvioColor.RIGHT);
-		this.evolvioColor.stroke(0, 0, 1);
-		this.evolvioColor.strokeWeight(3);
-		this.evolvioColor.line(x1, (float) (zeroLineY), x1 + w, (float) (zeroLineY));
+		this.evolvioApplet.textAlign(EvolvioApplet.RIGHT);
+		this.evolvioApplet.stroke(0, 0, 1);
+		this.evolvioApplet.strokeWeight(3);
+		this.evolvioApplet.line(x1, (float) (zeroLineY), x1 + w, (float) (zeroLineY));
 		double minY = y1 + h * (1 - (minTemperature - min) / (max - min));
 		double maxY = y1 + h * (1 - (maxTemperature - min) / (max - min));
-		this.evolvioColor.fill(0, 0, 0.8f);
-		this.evolvioColor.line(x1, (float) (minY), x1 + w * 1.8f, (float) (minY));
-		this.evolvioColor.line(x1, (float) (maxY), x1 + w * 1.8f, (float) (maxY));
-		this.evolvioColor.line(x1 + w * 1.8f, (float) (minY), x1 + w * 1.8f, (float) (maxY));
+		this.evolvioApplet.fill(0, 0, 0.8f);
+		this.evolvioApplet.line(x1, (float) (minY), x1 + w * 1.8f, (float) (minY));
+		this.evolvioApplet.line(x1, (float) (maxY), x1 + w * 1.8f, (float) (maxY));
+		this.evolvioApplet.line(x1 + w * 1.8f, (float) (minY), x1 + w * 1.8f, (float) (maxY));
 
-		this.evolvioColor.fill(0, 0, 1);
-		this.evolvioColor.text("Zero", x1 - 5, (float) (zeroLineY + 8));
-		this.evolvioColor.text(EvolvioColor.nf(minTemperature, 0, 2), x1 - 5, (float) (minY + 8));
-		this.evolvioColor.text(EvolvioColor.nf(maxTemperature, 0, 2), x1 - 5, (float) (maxY + 8));
+		this.evolvioApplet.fill(0, 0, 1);
+		this.evolvioApplet.text("Zero", x1 - 5, (float) (zeroLineY + 8));
+		this.evolvioApplet.text(EvolvioApplet.nf(minTemperature, 0, 2), x1 - 5, (float) (minY + 8));
+		this.evolvioApplet.text(EvolvioApplet.nf(maxTemperature, 0, 2), x1 - 5, (float) (maxY + 8));
 	}
 
 	private void drawVerticalSlider(float x1, float y1, float w, float h, double prog, int fillColor, int antiColor) {
-		this.evolvioColor.noStroke();
-		this.evolvioColor.fill(0, 0, 0.2f);
-		this.evolvioColor.rect(x1, y1, w, h);
+		this.evolvioApplet.noStroke();
+		this.evolvioApplet.fill(0, 0, 0.2f);
+		this.evolvioApplet.rect(x1, y1, w, h);
 		if (prog >= 0) {
-			this.evolvioColor.fill(fillColor);
+			this.evolvioApplet.fill(fillColor);
 		} else {
-			this.evolvioColor.fill(antiColor);
+			this.evolvioApplet.fill(antiColor);
 		}
-		this.evolvioColor.rect(x1, (float) (y1 + h * (1 - prog)), w, (float) (prog * h));
+		this.evolvioApplet.rect(x1, (float) (y1 + h * (1 - prog)), w, (float) (prog * h));
 	}
 
 	public boolean setMinTemperature(float temp) {
@@ -538,11 +554,11 @@ public class Board {
 	}
 
 	private String toDate(double d) {
-		return "Year " + EvolvioColor.nf((float) (d), 0, 2);
+		return "Year " + EvolvioApplet.nf((float) (d), 0, 2);
 	}
 
 	private String toAge(double d) {
-		return EvolvioColor.nf((float) d, 0, 2) + " yrs old";
+		return EvolvioApplet.nf((float) d, 0, 2) + " yrs old";
 	}
 
 	public void increaseSpawnChance() {
@@ -555,13 +571,13 @@ public class Board {
 	}
 
 	private void randomSpawnCreature(boolean choosePreexisting) {
-		if (this.evolvioColor.random(0, 1) < spawnChance) {
+		if (this.evolvioApplet.random(0, 1) < spawnChance) {
 			if (choosePreexisting) {
 				Creature c = getRandomCreature();
 				c.addEnergy(Configuration.SAFE_SIZE);
 				c.reproduce(Configuration.SAFE_SIZE, timeStep);
 			} else {
-				creatures.add(new Creature(this.evolvioColor, this));
+				creatures.add(new Creature(this.evolvioApplet, this));
 			}
 		}
 	}
@@ -579,7 +595,7 @@ public class Board {
 	}
 
 	private Creature getRandomCreature() {
-		int index = (int) (this.evolvioColor.random(0, creatures.size()));
+		int index = (int) (this.evolvioApplet.random(0, creatures.size()));
 		return creatures.get(index);
 	}
 
@@ -587,8 +603,8 @@ public class Board {
 		return backgroundColor;
 	}
 
-	public Tile getTile(int x, int y) {
-		return tiles[x][y];
+	public World.Tile getTile(int x, int y) {
+		return world.getTile(y,x);
 	}
 
 	public int getBoardHeight() {
@@ -596,17 +612,17 @@ public class Board {
 	}
 
 	private double getRandomSize() {
-		return EvolvioColor.pow(this.evolvioColor.random(Configuration.MINIMUM_ROCK_ENERGY_BASE,
+		return EvolvioApplet.pow(this.evolvioApplet.random(Configuration.MINIMUM_ROCK_ENERGY_BASE,
 				Configuration.MAXIMUM_ROCK_ENERGY_BASE), 4);
 	}
 
 	private void drawCreature(Creature c, float x, float y, float scale, float scaleUp) {
-		this.evolvioColor.pushMatrix();
+		this.evolvioApplet.pushMatrix();
 		float scaleIconUp = scaleUp * scale;
-		this.evolvioColor.translate((float) (-c.getPx() * scaleIconUp), (float) (-c.getPy() * scaleIconUp));
-		this.evolvioColor.translate(x, y);
+		this.evolvioApplet.translate((float) (-c.getPx() * scaleIconUp), (float) (-c.getPy() * scaleIconUp));
+		this.evolvioApplet.translate(x, y);
 		c.drawSoftBody(scaleIconUp, 40.0f / scale, false);
-		this.evolvioColor.popMatrix();
+		this.evolvioApplet.popMatrix();
 	}
 
 	public void prepareForFileSave(int type) {
@@ -618,10 +634,10 @@ public class Board {
 			if (fileSaveTimes[i] < -99999) {
 				fileSaveTimes[i] = year;
 				if (i < 2) {
-					this.evolvioColor.saveFrame(getNextFileName(i));
+					this.evolvioApplet.saveFrame(getNextFileName(i));
 				} else {
 					String[] data = this.toBigString();
-					this.evolvioColor.saveStrings(getNextFileName(i), data);
+					this.evolvioApplet.saveStrings(getNextFileName(i), data);
 				}
 				fileSaveCounts[i]++;
 			}
@@ -671,7 +687,10 @@ public class Board {
 	
 	public int getColorAt(double x, double y) {
 		if (x >= 0 && x < Configuration.BOARD_WIDTH && y >= 0 && y < getBoardHeight()) {
-			return getTile((int) (x), (int) (y)).getColor();
+            World.Tile tile = getTile((int) x, (int) y);
+            // TODO creature should not know about presentation layer
+            // simulation logic should not interfere with rendering thread
+            return tileRenderer.getFoodColor(tile);
 		} else {
 			return getBackgroundColor();
 		}
@@ -733,5 +752,16 @@ public class Board {
 
 	public void setRender(boolean isRender) {
 		this.render = isRender;
+	}
+
+	// TODO remove all below
+
+
+	public float getMinTemperature() {
+		return minTemperature;
+	}
+
+	public float getMaxTemperature() {
+		return maxTemperature;
 	}
 }

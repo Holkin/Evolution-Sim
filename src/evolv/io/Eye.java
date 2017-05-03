@@ -9,7 +9,7 @@ public class Eye {
 	private static final float CROSS_SIZE = 0.022f;
 
 	private final Creature creature;
-	private final EvolvioColor evolvioColor;
+	private final EvolvioApplet evolvioApplet;
 	final double angle;
 	final double distance;
 
@@ -25,9 +25,9 @@ public class Eye {
 		public double brightness;
 	}
 
-	public Eye(EvolvioColor evolvioColor, Creature creature, double angle, double distance) {
+	public Eye(EvolvioApplet evolvioApplet, Creature creature, double angle, double distance) {
 		this.creature = creature;
-		this.evolvioColor = evolvioColor;
+		this.evolvioApplet = evolvioApplet;
 		this.angle = angle;
 		this.distance = distance;
 
@@ -45,9 +45,9 @@ public class Eye {
 		visionOccludedX = endX;
 		visionOccludedY = endY;
 		int c = creature.getBoard().getColorAt(endX, endY);
-		eyeResult.hue = evolvioColor.hue(c);
-		eyeResult.saturation = evolvioColor.saturation(c);
-		eyeResult.brightness = evolvioColor.brightness(c);
+		eyeResult.hue = evolvioApplet.hue(c);
+		eyeResult.saturation = evolvioApplet.saturation(c);
+		eyeResult.brightness = evolvioApplet.brightness(c);
 
 		getPVOs(visionStart, visionTotalAngle);
 
@@ -79,27 +79,27 @@ public class Eye {
 	}
 
 	public void drawVisionAngle(float scaleUp) {
-		int visionUIcolor = this.evolvioColor.color(0, 0, 1);
+		int visionUIcolor = this.evolvioApplet.color(0, 0, 1);
 		if (getEyeResult().brightness > Configuration.BRIGHTNESS_THRESHOLD) {
-			visionUIcolor = this.evolvioColor.color(0, 0, 0);
+			visionUIcolor = this.evolvioApplet.color(0, 0, 0);
 		}
-		this.evolvioColor.stroke(visionUIcolor);
-		this.evolvioColor.strokeWeight(Configuration.CREATURE_STROKE_WEIGHT);
+		this.evolvioApplet.stroke(visionUIcolor);
+		this.evolvioApplet.strokeWeight(Configuration.CREATURE_STROKE_WEIGHT);
 		float endX = (float) getVisionEndX();
 		float endY = (float) getVisionEndY();
-		this.evolvioColor.line((float) (creature.getPx() * scaleUp), (float) (creature.getPy() * scaleUp),
+		this.evolvioApplet.line((float) (creature.getPx() * scaleUp), (float) (creature.getPy() * scaleUp),
 				endX * scaleUp, endY * scaleUp);
-		this.evolvioColor.noStroke();
-		this.evolvioColor.fill(visionUIcolor);
-		this.evolvioColor.ellipse((float) (visionOccludedX * scaleUp), (float) (visionOccludedY * scaleUp),
+		this.evolvioApplet.noStroke();
+		this.evolvioApplet.fill(visionUIcolor);
+		this.evolvioApplet.ellipse((float) (visionOccludedX * scaleUp), (float) (visionOccludedY * scaleUp),
 				2 * CROSS_SIZE * scaleUp, 2 * CROSS_SIZE * scaleUp);
-		this.evolvioColor.stroke((float) (getEyeResult().hue), (float) (getEyeResult().saturation),
+		this.evolvioApplet.stroke((float) (getEyeResult().hue), (float) (getEyeResult().saturation),
 				(float) (getEyeResult().brightness));
-		this.evolvioColor.strokeWeight(Configuration.CREATURE_STROKE_WEIGHT);
-		this.evolvioColor.line((float) ((visionOccludedX - CROSS_SIZE) * scaleUp),
+		this.evolvioApplet.strokeWeight(Configuration.CREATURE_STROKE_WEIGHT);
+		this.evolvioApplet.line((float) ((visionOccludedX - CROSS_SIZE) * scaleUp),
 				(float) ((visionOccludedY - CROSS_SIZE) * scaleUp), (float) ((visionOccludedX + CROSS_SIZE) * scaleUp),
 				(float) ((visionOccludedY + CROSS_SIZE) * scaleUp));
-		this.evolvioColor.line((float) ((visionOccludedX - CROSS_SIZE) * scaleUp),
+		this.evolvioApplet.line((float) ((visionOccludedX - CROSS_SIZE) * scaleUp),
 				(float) ((visionOccludedY + CROSS_SIZE) * scaleUp), (float) ((visionOccludedX + CROSS_SIZE) * scaleUp),
 				(float) ((visionOccludedY - CROSS_SIZE) * scaleUp));
 	}

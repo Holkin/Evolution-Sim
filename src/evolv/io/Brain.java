@@ -12,7 +12,7 @@ public class Brain {
 	static final int NEURON_OFFSET_X = -85;
 	static final int NEURON_OFFSET_Y = 20;
 
-	private final EvolvioColor evolvioColor;
+	private final EvolvioApplet evolvioApplet;
 	// Brain
 	private final Axon[][][] axons;
 	private final double[][] neurons;
@@ -49,8 +49,8 @@ public class Brain {
 		INPUT_LABELS[BRAIN_HEIGHT - 1] = "Const.";
 	}
 
-	public Brain(EvolvioColor evolvioColor, Axon[][][] tbrain, double[][] tneurons) {
-		this.evolvioColor = evolvioColor;
+	public Brain(EvolvioApplet evolvioApplet, Axon[][][] tbrain, double[][] tneurons) {
+		this.evolvioApplet = evolvioApplet;
 		// initialize brain
 		if (tbrain == null) {
 			axons = new Axon[Configuration.BRAIN_WIDTH - 1][BRAIN_HEIGHT][BRAIN_HEIGHT - 1];
@@ -81,12 +81,12 @@ public class Brain {
 		int parentsTotal = parents.size();
 		Axon[][][] newBrain = new Axon[Configuration.BRAIN_WIDTH - 1][BRAIN_HEIGHT][BRAIN_HEIGHT - 1];
 		double[][] newNeurons = new double[Configuration.BRAIN_WIDTH][BRAIN_HEIGHT];
-		float randomParentRotation = this.evolvioColor.random(0, 1);
+		float randomParentRotation = this.evolvioApplet.random(0, 1);
 		for (int x = 0; x < Configuration.BRAIN_WIDTH - 1; x++) {
 			for (int y = 0; y < BRAIN_HEIGHT; y++) {
 				for (int z = 0; z < BRAIN_HEIGHT - 1; z++) {
-					float axonAngle = EvolvioColor.atan2((y + z) / 2.0f - BRAIN_HEIGHT / 2.0f,
-							x - Configuration.BRAIN_WIDTH / 2) / (2 * EvolvioColor.PI) + EvolvioColor.PI;
+					float axonAngle = EvolvioApplet.atan2((y + z) / 2.0f - BRAIN_HEIGHT / 2.0f,
+							x - Configuration.BRAIN_WIDTH / 2) / (2 * EvolvioApplet.PI) + EvolvioApplet.PI;
 					Brain parentForAxon = parents
 							.get((int) (((axonAngle + randomParentRotation) % 1.0f) * parentsTotal)).getBrain();
 					newBrain[x][y][z] = parentForAxon.axons[x][y][z].mutateAxon();
@@ -95,49 +95,49 @@ public class Brain {
 		}
 		for (int x = 0; x < Configuration.BRAIN_WIDTH; x++) {
 			for (int y = 0; y < BRAIN_HEIGHT; y++) {
-				float axonAngle = EvolvioColor.atan2(y - BRAIN_HEIGHT / 2.0f, x - Configuration.BRAIN_WIDTH / 2)
-						/ (2 * EvolvioColor.PI) + EvolvioColor.PI;
+				float axonAngle = EvolvioApplet.atan2(y - BRAIN_HEIGHT / 2.0f, x - Configuration.BRAIN_WIDTH / 2)
+						/ (2 * EvolvioApplet.PI) + EvolvioApplet.PI;
 				Brain parentForAxon = parents.get((int) (((axonAngle + randomParentRotation) % 1.0f) * parentsTotal))
 						.getBrain();
 				newNeurons[x][y] = parentForAxon.neurons[x][y];
 			}
 		}
-		return new Brain(this.evolvioColor, newBrain, newNeurons);
+		return new Brain(this.evolvioApplet, newBrain, newNeurons);
 	}
 
 	public void draw(float scaleUp, int mX, int mY) {
 		final float neuronSize = 0.4f;
-		this.evolvioColor.noStroke();
-		this.evolvioColor.fill(0, 0, 0.4f);
-		this.evolvioColor.rect((-3.2f - neuronSize) * scaleUp, -neuronSize * scaleUp,
+		this.evolvioApplet.noStroke();
+		this.evolvioApplet.fill(0, 0, 0.4f);
+		this.evolvioApplet.rect((-3.2f - neuronSize) * scaleUp, -neuronSize * scaleUp,
 				(3.8f + Configuration.BRAIN_WIDTH + neuronSize * 2) * scaleUp,
 				(BRAIN_HEIGHT + neuronSize * 2) * scaleUp);
 
-		this.evolvioColor.ellipseMode(EvolvioColor.RADIUS);
-		this.evolvioColor.strokeWeight(2);
-		this.evolvioColor.textSize(0.5f * scaleUp);
-		this.evolvioColor.fill(0, 0, 1);
+		this.evolvioApplet.ellipseMode(EvolvioApplet.RADIUS);
+		this.evolvioApplet.strokeWeight(2);
+		this.evolvioApplet.textSize(0.5f * scaleUp);
+		this.evolvioApplet.fill(0, 0, 1);
 		for (int y = 0; y < INPUT_LABELS.length; y++) {
-			this.evolvioColor.textAlign(EvolvioColor.RIGHT);
-			if (INPUT_LABELS[y] != null) this.evolvioColor.text(INPUT_LABELS[y], (-neuronSize - 0.1f) * scaleUp + NEURON_OFFSET_X,
+			this.evolvioApplet.textAlign(EvolvioApplet.RIGHT);
+			if (INPUT_LABELS[y] != null) this.evolvioApplet.text(INPUT_LABELS[y], (-neuronSize - 0.1f) * scaleUp + NEURON_OFFSET_X,
 					(y + (neuronSize * 0.6f)) * scaleUp + NEURON_OFFSET_Y);
 		}
 		for (int y = 0; y < OUTPUT_LABELS.length; y++) {
-			this.evolvioColor.textAlign(EvolvioColor.LEFT);
-			if (OUTPUT_LABELS[y] != null) this.evolvioColor.text(OUTPUT_LABELS[y],
+			this.evolvioApplet.textAlign(EvolvioApplet.LEFT);
+			if (OUTPUT_LABELS[y] != null) this.evolvioApplet.text(OUTPUT_LABELS[y],
 					(Configuration.BRAIN_WIDTH - 1 + neuronSize + 0.5f) * scaleUp * NEURON_SPACING + NEURON_OFFSET_X,
 					(y + (neuronSize * 0.6f)) * scaleUp + NEURON_OFFSET_Y);
 		}
-		this.evolvioColor.textAlign(EvolvioColor.CENTER);
+		this.evolvioApplet.textAlign(EvolvioApplet.CENTER);
 		for (int x = 0; x < Configuration.BRAIN_WIDTH; x++) {
 			for (int y = 0; y < BRAIN_HEIGHT; y++) {
-				this.evolvioColor.noStroke();
+				this.evolvioApplet.noStroke();
 				double val = neurons[x][y];
-				this.evolvioColor.fill(neuronFillColor(val));
-				this.evolvioColor.ellipse(x * scaleUp * NEURON_SPACING + NEURON_OFFSET_X + 15,
+				this.evolvioApplet.fill(neuronFillColor(val));
+				this.evolvioApplet.ellipse(x * scaleUp * NEURON_SPACING + NEURON_OFFSET_X + 15,
 						y * scaleUp + NEURON_OFFSET_Y, neuronSize * scaleUp, neuronSize * scaleUp);
-				this.evolvioColor.fill(neuronTextColor(val));
-				this.evolvioColor.text(EvolvioColor.nf((float) val, 0, 1),
+				this.evolvioApplet.fill(neuronTextColor(val));
+				this.evolvioApplet.text(EvolvioApplet.nf((float) val, 0, 1),
 						x * scaleUp * NEURON_SPACING + NEURON_OFFSET_X + 15,
 						(y + (neuronSize * 0.6f)) * scaleUp + NEURON_OFFSET_Y);
 			}
@@ -189,24 +189,24 @@ public class Brain {
 	}
 
 	private void drawAxon(int x1, int y1, int x2, int y2, float scaleUp) {
-		this.evolvioColor.stroke(neuronFillColor(axons[x1][y1][y2].getWeight() * neurons[x1][y1]));
-		this.evolvioColor.line(x1 * scaleUp * NEURON_SPACING + NEURON_OFFSET_X, y1 * scaleUp + NEURON_OFFSET_Y,
+		this.evolvioApplet.stroke(neuronFillColor(axons[x1][y1][y2].getWeight() * neurons[x1][y1]));
+		this.evolvioApplet.line(x1 * scaleUp * NEURON_SPACING + NEURON_OFFSET_X, y1 * scaleUp + NEURON_OFFSET_Y,
 				x2 * scaleUp * NEURON_SPACING + NEURON_OFFSET_X, y2 * scaleUp + NEURON_OFFSET_Y);
 	}
 
 	private int neuronFillColor(double d) {
 		if (d >= 0) {
-			return this.evolvioColor.color(0, 0, 1, (float) (d));
+			return this.evolvioApplet.color(0, 0, 1, (float) (d));
 		} else {
-			return this.evolvioColor.color(0, 0, 0, (float) (-d));
+			return this.evolvioApplet.color(0, 0, 0, (float) (-d));
 		}
 	}
 
 	private int neuronTextColor(double d) {
 		if (d >= 0) {
-			return this.evolvioColor.color(0, 0, 0);
+			return this.evolvioApplet.color(0, 0, 0);
 		} else {
-			return this.evolvioColor.color(0, 0, 1);
+			return this.evolvioApplet.color(0, 0, 1);
 		}
 	}
 }

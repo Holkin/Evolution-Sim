@@ -55,3 +55,6 @@ local.properties
 # Code Recommenders
 .recommenders/
 /target/
+
+.idea/
+*.iml

@@ -1,7 +1,7 @@
 package evolv.io;
 
 public class Configuration {
-	// EvolvioColor
+	// EvolvioApplet
 	public static final float NOISE_STEP_SIZE = 0.1f;
 	public static final int BOARD_WIDTH = 100;
 	public static final int BOARD_HEIGHT = 100;
@@ -77,4 +77,6 @@ public class Configuration {
 	// Tile
 	public static final float FOOD_GROWTH_RATE = 1.0f;
 	public static final float MAX_GROWTH_LEVEL = 3.0f;
+	public static final double MAX_FERTILITY = 1.0;
+
 }
