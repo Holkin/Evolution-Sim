@@ -14,7 +14,6 @@ public class SoftBody {
 	/*
 	 * Set so when a creature is of minimum size, it equals one.
 	 */
-	private final double density;
 	private final List<SoftBody> colliders = new ArrayList<SoftBody>(0);
 
 	private double px;
@@ -32,15 +31,13 @@ public class SoftBody {
 	private int SBIPMaxX;
 	private int SBIPMaxY;
 
-	public SoftBody(EvolvioApplet evolvioApplet, Board tb, double tpx, double tpy, double tvx, double tvy, double tenergy,
-					double tdensity, double thue, double tsaturation, double tbrightness) {
+	public SoftBody(EvolvioApplet evolvioApplet, Board tb, double tpx, double tpy, double tvx, double tvy, double tenergy, double thue, double tsaturation, double tbrightness) {
 		this.evolvioApplet = evolvioApplet;
 		px = tpx;
 		py = tpy;
 		vx = tvx;
 		vy = tvy;
 		energy = tenergy;
-		density = tdensity;
 		hue = thue;
 		saturation = tsaturation;
 		brightness = tbrightness;
@@ -158,11 +155,7 @@ public class SoftBody {
 	}
 
 	public double getMass() {
-		return energy / ENERGY_DENSITY * density;
-	}
-
-	public double getDensity() {
-		return density;
+		return energy / ENERGY_DENSITY;
 	}
 
 	public List<SoftBody> getColliders() {

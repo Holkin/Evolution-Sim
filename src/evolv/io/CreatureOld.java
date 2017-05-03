@@ -38,14 +38,14 @@ public class CreatureOld extends SoftBody {
 	public CreatureOld(EvolvioApplet evolvioApplet, Board board) {
 		this(evolvioApplet, board, evolvioApplet.random(0, Configuration.BOARD_WIDTH),
 				evolvioApplet.random(0, board.getBoardHeight()), 0, 0,
-				evolvioApplet.random(Configuration.MINIMUM_CREATURE_ENERGY, Configuration.MAXIMUM_CREATURE_ENERGY), 1,
+				evolvioApplet.random(Configuration.MINIMUM_CREATURE_ENERGY, Configuration.MAXIMUM_CREATURE_ENERGY),
 				evolvioApplet.random(0, 1), 1, 1, evolvioApplet.random(0, 2 * EvolvioApplet.PI), 0, "", "[PRIMORDIAL]",
 				true, null, 1, evolvioApplet.random(0, 1), new double[Configuration.NUM_EYES], new double[Configuration.NUM_EYES]);
 	}
 	public CreatureOld(EvolvioApplet evolvioApplet, Board board, double tpx, double tpy, double tvx, double tvy,
-                       double tenergy, double tdensity, double thue, double tsaturation, double tbrightness, double rot,
+                       double tenergy, double thue, double tsaturation, double tbrightness, double rot,
                        double tvr, String tname, String tparents, boolean mutateName, Brain brain, int tgen, double tmouthHue, double[] teyeDistances, double[] teyeAngles) {
-		super(evolvioApplet, board, tpx, tpy, tvx, tvy, tenergy, tdensity, thue, tsaturation, tbrightness);
+		super(evolvioApplet, board, tpx, tpy, tvx, tvy, tenergy, thue, tsaturation, tbrightness);
 		this.evolvioApplet = evolvioApplet;
 
 		if (brain == null) {
@@ -354,7 +354,7 @@ public class CreatureOld extends SoftBody {
 				newSaturation = 1;
 				newBrightness = 1;
 				getBoard().addCreature(new CreatureOld(this.evolvioApplet, getBoard(), newPX, newPY, 0, 0, babySize,
-						getDensity(), newHue, newSaturation, newBrightness,
+						newHue, newSaturation, newBrightness,
 						this.evolvioApplet.random(0, 2 * EvolvioApplet.PI), 0, stitchName(parentNames),
 						andifyParents(parentNames), true, newBrain, highestGen + 1, newMouthHue, newEyeAngles, newEyeDistances));
 			}
