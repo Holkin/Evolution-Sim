@@ -51,10 +51,6 @@ public class Board {
 	private float maxTemperature = Configuration.MAXIMUM_TEMPERATURE;
 	private double temperature;
 
-	// Rocks
-	private final int rockColor;
-	private final List<SoftBody> rocks = new ArrayList<SoftBody>(Configuration.ROCKS_TO_ADD);
-
 	// Saving
 	private final int[] fileSaveCounts;
 	private final double[] fileSaveTimes;
@@ -72,7 +68,6 @@ public class Board {
 	private final TileRenderer tileRenderer;
 
 	public Board(EvolvioApplet evolvioApplet, int randomSeed) {
-		this.rockColor = evolvioApplet.color(0, 0, 0.5f);
 		this.backgroundColor = evolvioApplet.color(0, 0, 0.1f);
 		this.buttonColor = evolvioApplet.color(0.82f, 0.8f, 0.7f);
 		this.evolvioApplet = evolvioApplet;
@@ -126,12 +121,6 @@ public class Board {
 			}
 		}
 
-		for (int i = 0; i < Configuration.ROCKS_TO_ADD; i++) {
-			rocks.add(new SoftBody(this.evolvioApplet, this, this.evolvioApplet.random(0, Configuration.BOARD_WIDTH),
-					this.evolvioApplet.random(0, Configuration.BOARD_HEIGHT), 0, 0, getRandomSize(), this.evolvioApplet.hue(rockColor),
-					this.evolvioApplet.saturation(rockColor), this.evolvioApplet.brightness(rockColor)));
-		}
-
 		this.fileSaveCounts = new int[4];
 		this.fileSaveTimes = new double[4];
 		for (int i = 0; i < 4; i++) {
@@ -147,9 +136,6 @@ public class Board {
 		drawTiles(scaleUp, camZoom);
 		if (mouseX >= 0 && mouseX < Configuration.BOARD_WIDTH && mouseY >= 0 && mouseY < Configuration.BOARD_HEIGHT) {
 			tileRenderer.drawTileInfo(getTile(mouseX, mouseY), scaleUp, camZoom);
-		}
-		for (SoftBody rock : rocks) {
-			rock.drawSoftBody(scaleUp);
 		}
 		for (CreatureOld creatureOld : creatureOlds) {
 			creatureOld.drawSoftBody(scaleUp, camZoom, true);
@@ -439,9 +425,6 @@ public class Board {
 	}
 
 	private void finishIterate(double timeStep) {
-		for (int i = 0; i < rocks.size(); i++) {
-			rocks.get(i).applyMotions(timeStep * Configuration.TIMESTEPS_PER_YEAR);
-		}
 		for (int i = 0; i < creatureOlds.size(); i++) {
 			creatureOlds.get(i).applyMotions(timeStep * Configuration.TIMESTEPS_PER_YEAR);
 			creatureOlds.get(i).see();
