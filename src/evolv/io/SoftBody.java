@@ -27,10 +27,6 @@ public class SoftBody {
 	private double brightness;
 	private double fightLevel;
 
-	private int prevSBIPMinX;
-	private int prevSBIPMinY;
-	private int prevSBIPMaxX;
-	private int prevSBIPMaxY;
 	private int SBIPMinX;
 	private int SBIPMinY;
 	private int SBIPMaxX;
@@ -54,12 +50,15 @@ public class SoftBody {
 		birthTime = tb.getYear();
 	}
 
+	/**
+	 * Looks like a collision box.
+     */
 	public void setSBIP(boolean shouldRemove) {
 		double radius = getRadius() * Configuration.FIGHT_RANGE;
-		prevSBIPMinX = SBIPMinX;
-		prevSBIPMinY = SBIPMinY;
-		prevSBIPMaxX = SBIPMaxX;
-		prevSBIPMaxY = SBIPMaxY;
+		int prevSBIPMinX = SBIPMinX;
+		int prevSBIPMinY = SBIPMinY;
+		int prevSBIPMaxX = SBIPMaxX;
+		int prevSBIPMaxY = SBIPMaxY;
 		SBIPMinX = xBound((int) (Math.floor(px - radius)));
 		SBIPMinY = yBound((int) (Math.floor(py - radius)));
 		SBIPMaxX = xBound((int) (Math.floor(px + radius)));

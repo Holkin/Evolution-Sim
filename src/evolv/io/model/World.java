@@ -81,21 +81,6 @@ public class World {
         return tiles;
     }
 
-    @Deprecated
-    public double[][] getFertility() {
-        return fertility;
-    }
-
-    @Deprecated
-    public double[][] getClimate() {
-        return climate;
-    }
-
-    @Deprecated
-    public double[][] getFood() {
-        return food;
-    }
-
     private static int getTileId() {
         return ++NEXT_TILE_ID;
     }
