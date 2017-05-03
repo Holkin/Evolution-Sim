@@ -2,6 +2,7 @@ package evolv.io;
 
 import evolv.io.model.World;
 import evolv.io.renderers.TileRenderer;
+import evolv.io.util.MathUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -106,12 +107,12 @@ public class Board {
 					// Food is growing. Exponentially approach maxGrowthLevel.
 					if (foodLevel < MAX_GROWTH_LEVEL) {
 						double newDistToMax = (MAX_GROWTH_LEVEL - foodLevel) *
-								Math.exp(-growthRate * fertility * FOOD_GROWTH_RATE);
+								MathUtil.fastExp(-growthRate * fertility * FOOD_GROWTH_RATE);
 						return  (MAX_GROWTH_LEVEL - newDistToMax) - foodLevel;
 					}
 				} else {
 					// Food is dying off. Exponentially approach 0.
-					return foodLevel * Math.exp(growthRate * FOOD_GROWTH_RATE) - foodLevel;
+					return foodLevel * MathUtil.fastExp(growthRate * FOOD_GROWTH_RATE) - foodLevel;
 				}
 			}
 			return 0;
