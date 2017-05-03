@@ -128,8 +128,7 @@ public class Board {
 
 		for (int i = 0; i < Configuration.ROCKS_TO_ADD; i++) {
 			rocks.add(new SoftBody(this.evolvioApplet, this, this.evolvioApplet.random(0, Configuration.BOARD_WIDTH),
-					this.evolvioApplet.random(0, Configuration.BOARD_HEIGHT), 0, 0, getRandomSize(),
-					Configuration.ROCK_DENSITY, this.evolvioApplet.hue(rockColor),
+					this.evolvioApplet.random(0, Configuration.BOARD_HEIGHT), 0, 0, getRandomSize(), this.evolvioApplet.hue(rockColor),
 					this.evolvioApplet.saturation(rockColor), this.evolvioApplet.brightness(rockColor)));
 		}
 
