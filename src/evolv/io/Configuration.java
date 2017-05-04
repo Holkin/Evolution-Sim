@@ -9,7 +9,6 @@ public class Configuration {
 	public static final float TIME_STEP = 0.001f;
 	public static final float MINIMUM_TEMPERATURE = -0.5f;
 	public static final float MAXIMUM_TEMPERATURE = 1.0f;
-	public static final int ROCKS_TO_ADD = 0;
 	public static final float SPAWN_CHANCE = .1f;
 	public static final String INITIAL_FILE_NAME = "PIC";
 
