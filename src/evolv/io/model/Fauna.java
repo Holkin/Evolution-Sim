@@ -95,6 +95,7 @@ public class Fauna {
         public double getBirthDate() {
             return birthDate;
         }
+
         private void init(double birthDate) {
             this.alive = true;
             this.birthDate = birthDate;

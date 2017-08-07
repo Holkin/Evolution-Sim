@@ -1,8 +1,5 @@
 package evolv.io;
 
-import java.util.Arrays;
-import java.util.List;
-
 import evolv.io.peripherals.MouseAction;
 import evolv.io.peripherals.MouseButton;
 import evolv.io.peripherals.Peripherals;
@@ -12,6 +9,9 @@ import processing.core.PApplet;
 import processing.core.PFont;
 import processing.event.KeyEvent;
 import processing.event.MouseEvent;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class EvolvioApplet extends PApplet {
 	private enum DragMode{

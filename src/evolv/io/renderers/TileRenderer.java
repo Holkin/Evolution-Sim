@@ -44,13 +44,13 @@ public class TileRenderer {
             } else {
                 this.applet.fill(0, 0, 1, 1);
             }
-            this.applet.textAlign(applet.CENTER);
+            this.applet.textAlign(PApplet.CENTER);
             this.applet.textSize(21);
-            this.applet.text(applet.nf((float) (100 * tile.getFood()), 0, 2) + " yums", (tile.x + 0.5f) * scaleUp,
+            this.applet.text(PApplet.nf((float) (100 * tile.getFood()), 0, 2) + " yums", (tile.x + 0.5f) * scaleUp,
                     (tile.y + 0.3f) * scaleUp);
-            this.applet.text("Clim: " + applet.nf((float) tile.getClimate(), 0, 2), (tile.x + 0.5f) * scaleUp,
+            this.applet.text("Clim: " + PApplet.nf(tile.getClimate(), 0, 2), (tile.x + 0.5f) * scaleUp,
                     (tile.y + 0.6f) * scaleUp);
-            this.applet.text("Food: " + applet.nf((float) tile.getFoodType(), 0, 2), (tile.x + 0.5f) * scaleUp,
+            this.applet.text("Food: " + PApplet.nf((float) tile.getFoodType(), 0, 2), (tile.x + 0.5f) * scaleUp,
                     (tile.y + 0.9f) * scaleUp);
         }
     }
