@@ -1,5 +1,8 @@
 package evolv.io;
 
+import evolv.io.temp.CreatureFactory;
+import evolv.io.temp.ICreature;
+import evolv.io.temp.ISoftBody;
 import evolv.io.model.World;
 import evolv.io.renderers.TileRenderer;
 import evolv.io.util.MathUtil;
@@ -17,7 +20,7 @@ import static evolv.io.Configuration.*;
 public class Board {
 	private static final String[] SORT_METRIC_NAMES = { "Biggest", "Smallest", "Youngest", "Oldest", "A to Z", "Z to A",
 			"Highest Gen", "Lowest Gen" };
-	private static final Comparator<CreatureOld>[] CREATURE_COMPARATORS = new Comparator[] {
+	private static final Comparator<ICreature>[] CREATURE_COMPARATORS = new Comparator[] {
 			new CreatureComparators.SizeComparator(SortOrder.DESCENDING),
 			new CreatureComparators.SizeComparator(SortOrder.ASCENDING),
 			new CreatureComparators.AgeComparator(SortOrder.DESCENDING),
@@ -31,11 +34,11 @@ public class Board {
 	private final int randomSeed;
 
 	// CreatureOld
-	private final List<SoftBody>[][] softBodiesInPositions = new List[Configuration.BOARD_WIDTH][Configuration.BOARD_HEIGHT];
-	private final List<CreatureOld> creatureOlds = new ArrayList<CreatureOld>();
-	private final CreatureOld[] list = new CreatureOld[Configuration.LIST_SLOTS];
+	private final List<ISoftBody>[][] softBodiesInPositions = new List[Configuration.BOARD_WIDTH][Configuration.BOARD_HEIGHT];
+	private final List<ICreature> creatureOlds = new ArrayList<>();
+	private final ICreature[] list = new ICreature[Configuration.LIST_SLOTS];
 	private float spawnChance = Configuration.SPAWN_CHANCE;
-	private CreatureOld selectedCreatureOld;
+	private ICreature selectedCreatureOld;
 	private int creatureIDUpTo;
 	private int sortMetric;
 	private boolean isPressingKeyB;
@@ -117,7 +120,7 @@ public class Board {
 
 		for (int x = 0; x < Configuration.BOARD_WIDTH; x++) {
 			for (int y = 0; y < Configuration.BOARD_HEIGHT; y++) {
-				softBodiesInPositions[x][y] = new ArrayList<SoftBody>(0);
+				softBodiesInPositions[x][y] = new ArrayList<>(0);
 			}
 		}
 
@@ -137,7 +140,7 @@ public class Board {
 		if (mouseX >= 0 && mouseX < Configuration.BOARD_WIDTH && mouseY >= 0 && mouseY < Configuration.BOARD_HEIGHT) {
 			tileRenderer.drawTileInfo(getTile(mouseX, mouseY), scaleUp, camZoom);
 		}
-		for (CreatureOld creatureOld : creatureOlds) {
+		for (ICreature creatureOld : creatureOlds) {
 			creatureOld.drawSoftBody(scaleUp, camZoom, true);
 		}
 	}
@@ -376,7 +379,7 @@ public class Board {
 		 */
 		randomSpawnCreature(false);
 		for (int i = 0; i < creatureOlds.size(); i++) {
-			CreatureOld me = creatureOlds.get(i);
+			ICreature me = creatureOlds.get(i);
 			me.collide(timeStep);
 			me.metabolize(timeStep);
 			me.useBrain(timeStep, !userControl);
@@ -556,16 +559,16 @@ public class Board {
 	private void randomSpawnCreature(boolean choosePreexisting) {
 		if (this.evolvioApplet.random(0, 1) < spawnChance) {
 			if (choosePreexisting) {
-				CreatureOld c = getRandomCreature();
+				ICreature c = getRandomCreature();
 				c.addEnergy(Configuration.SAFE_SIZE);
 				c.reproduce(Configuration.SAFE_SIZE, timeStep);
 			} else {
-				creatureOlds.add(new CreatureOld(this.evolvioApplet, this));
+				creatureOlds.add(CreatureFactory.makeCreature(this.evolvioApplet, this));
 			}
 		}
 	}
 
-	public List<SoftBody> getSoftBodiesInPosition(int x, int y) {
+	public List<ISoftBody> getSoftBodiesInPosition(int x, int y) {
 		return softBodiesInPositions[x][y];
 	}
 
@@ -577,7 +580,7 @@ public class Board {
 		creatureIDUpTo++;
 	}
 
-	private CreatureOld getRandomCreature() {
+	private ICreature getRandomCreature() {
 		int index = (int) (this.evolvioApplet.random(0, creatureOlds.size()));
 		return creatureOlds.get(index);
 	}
@@ -599,7 +602,7 @@ public class Board {
 				Configuration.MAXIMUM_ROCK_ENERGY_BASE), 4);
 	}
 
-	private void drawCreature(CreatureOld c, float x, float y, float scale, float scaleUp) {
+	private void drawCreature(ICreature c, float x, float y, float scale, float scaleUp) {
 		this.evolvioApplet.pushMatrix();
 		float scaleIconUp = scaleUp * scale;
 		this.evolvioApplet.translate((float) (-c.getPx() * scaleIconUp), (float) (-c.getPy() * scaleIconUp));
@@ -641,19 +644,19 @@ public class Board {
 		return placeholder;
 	}
 
-	public void addCreature(CreatureOld creatureOld) {
+	public void addCreature(ICreature creatureOld) {
 		creatureOlds.add(creatureOld);
 	}
 
-	public void removeCreature(CreatureOld creatureOld) {
+	public void removeCreature(ICreature creatureOld) {
 		creatureOlds.remove(creatureOld);
 	}
 
-	public CreatureOld getSelectedCreatureOld() {
+	public ICreature getSelectedCreatureOld() {
 		return selectedCreatureOld;
 	}
 
-	public void setSelectedCreatureOld(CreatureOld selectedCreatureOld) {
+	public void setSelectedCreatureOld(ICreature selectedCreatureOld) {
 		this.selectedCreatureOld = selectedCreatureOld;
 	}
 
@@ -661,7 +664,7 @@ public class Board {
 		selectedCreatureOld = null;
 	}
 
-	public CreatureOld getCreatureInList(int slotIndex) {
+	public ICreature getCreatureInList(int slotIndex) {
 		if (slotIndex < 0 || slotIndex >= list.length) {
 			return null;
 		}

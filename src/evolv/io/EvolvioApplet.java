@@ -1,5 +1,7 @@
 package evolv.io;
 
+import evolv.io.temp.ICreature;
+import evolv.io.temp.ISoftBody;
 import evolv.io.peripherals.MouseAction;
 import evolv.io.peripherals.MouseButton;
 import evolv.io.peripherals.Peripherals;
@@ -226,11 +228,11 @@ public class EvolvioApplet extends PApplet {
 				evoBoard.unselect();
 				cameraR = 0;
 				if (x >= 0 && x < Configuration.BOARD_WIDTH && y >= 0 && y < Configuration.BOARD_HEIGHT) {
-					for (SoftBody body : evoBoard.getSoftBodiesInPosition(x, y)) {
-						if (body instanceof CreatureOld) {
+					for (ISoftBody body : evoBoard.getSoftBodiesInPosition(x, y)) {
+						if (body instanceof ICreature) {
 							float distance = dist(mX, mY, (float) body.getPx(), (float) body.getPy());
 							if (distance <= body.getRadius()) {
-								evoBoard.setSelectedCreatureOld((CreatureOld) body);
+								evoBoard.setSelectedCreatureOld((ICreature) body);
 								zoom = 16;
 							}
 						}

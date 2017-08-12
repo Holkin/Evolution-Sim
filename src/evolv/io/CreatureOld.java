@@ -1,12 +1,15 @@
 package evolv.io;
 
+import evolv.io.temp.CreatureFactory;
+import evolv.io.temp.ISoftBody;
 import evolv.io.model.World;
+import evolv.io.temp.ICreature;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class CreatureOld extends SoftBody {
+public class CreatureOld extends SoftBody implements ICreature {
 	private static final List<CreatureAction> CREATURE_ACTIONS = Arrays.asList(new CreatureAction.AdjustHue(),
 			new CreatureAction.Accelerate(), new CreatureAction.Rotate(), new CreatureAction.Eat(),
 			new CreatureAction.Fight(), new CreatureAction.Reproduce(), new CreatureAction.AdjustMouthHue());
@@ -35,13 +38,7 @@ public class CreatureOld extends SoftBody {
 
 	// TODO can the size of these constructors be reduced?
 
-	public CreatureOld(EvolvioApplet evolvioApplet, Board board) {
-		this(evolvioApplet, board, evolvioApplet.random(0, Configuration.BOARD_WIDTH),
-				evolvioApplet.random(0, board.getBoardHeight()), 0, 0,
-				evolvioApplet.random(Configuration.MINIMUM_CREATURE_ENERGY, Configuration.MAXIMUM_CREATURE_ENERGY),
-				evolvioApplet.random(0, 1), 1, 1, evolvioApplet.random(0, 2 * EvolvioApplet.PI), 0, "", "[PRIMORDIAL]",
-				true, null, 1, evolvioApplet.random(0, 1), new double[Configuration.NUM_EYES], new double[Configuration.NUM_EYES]);
-	}
+	@Deprecated
 	public CreatureOld(EvolvioApplet evolvioApplet, Board board, double tpx, double tpy, double tvx, double tvy,
                        double tenergy, double thue, double tsaturation, double tbrightness, double rot,
                        double tvr, String tname, String tparents, boolean mutateName, Brain brain, int tgen, double tmouthHue, double[] teyeDistances, double[] teyeAngles) {
@@ -226,13 +223,13 @@ public class CreatureOld extends SoftBody {
 			setFightLevel(amount);
 			loseEnergy(getFightLevel() * Configuration.FIGHT_ENERGY * getEnergy() * timeStep);
 			for (int i = 0; i < getColliders().size(); i++) {
-				SoftBody collider = getColliders().get(i);
-				if (collider instanceof CreatureOld) {
+				ISoftBody collider = getColliders().get(i);
+				if (collider instanceof ICreature) {
 					float distance = EvolvioApplet.dist((float) getPx(), (float) getPy(), (float) collider.getPx(),
 							(float) collider.getPy());
 					double combinedRadius = getRadius() * Configuration.FIGHT_RANGE + collider.getRadius();
 					if (distance < combinedRadius) {
-						((CreatureOld) collider).dropEnergy(getFightLevel() * Configuration.INJURED_ENERGY * timeStep);
+						((ICreature) collider).dropEnergy(getFightLevel() * Configuration.INJURED_ENERGY * timeStep);
 					}
 				}
 			}
@@ -268,10 +265,10 @@ public class CreatureOld extends SoftBody {
 		return (Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1)));
 	}
 
-	public void addPVOs(int x, int y, List<SoftBody> PVOs) {
+	public void addPVOs(int x, int y, List<ISoftBody> PVOs) {
 		if (x >= 0 && x < Configuration.BOARD_WIDTH && y >= 0 && y < getBoard().getBoardHeight()) {
 			for (int i = 0; i < getBoard().getSoftBodiesInPosition(x, y).size(); i++) {
-				SoftBody newCollider = getBoard().getSoftBodiesInPosition(x, y).get(i);
+				ISoftBody newCollider = getBoard().getSoftBodiesInPosition(x, y).get(i);
 				if (!PVOs.contains(newCollider) && newCollider != this) {
 					PVOs.add(newCollider);
 				}
@@ -297,21 +294,21 @@ public class CreatureOld extends SoftBody {
 	public void reproduce(double babySize, double timeStep) {
 		int highestGen = 0;
 		if (babySize >= 0) {
-			List<CreatureOld> parents = new ArrayList<CreatureOld>(0);
+			List<ICreature> parents = new ArrayList<>(0);
 			parents.add(this);
 			double availableEnergy = getBabyEnergy();
 			for (int i = 0; i < getColliders().size(); i++) {
-				SoftBody possibleParent = getColliders().get(i);
+				ISoftBody possibleParent = getColliders().get(i);
 				/*
 				 * Must be a WILLING creature to also give birth.
 				 */
-				if (possibleParent instanceof CreatureOld && ((CreatureOld) possibleParent).brain.outputs()[5] > -1) {
+				if (possibleParent instanceof ICreature && ((ICreature) possibleParent).getBrain().outputs()[5] > -1) {
 					float distance = EvolvioApplet.dist((float) getPx(), (float) getPy(), (float) possibleParent.getPx(),
 							(float) possibleParent.getPy());
 					double combinedRadius = getRadius() * Configuration.FIGHT_RANGE + possibleParent.getRadius();
 					if (distance < combinedRadius) {
-						parents.add((CreatureOld) possibleParent);
-						availableEnergy += ((CreatureOld) possibleParent).getBabyEnergy();
+						parents.add((ICreature) possibleParent);
+						availableEnergy += ((ICreature) possibleParent).getBabyEnergy();
 					}
 				}
 			}
@@ -333,7 +330,7 @@ public class CreatureOld extends SoftBody {
 				Brain newBrain = brain.evolve(parents);
 				for (int i = 0; i < parentsTotal; i++) {
 					int chosenIndex = (int) this.evolvioApplet.random(0, parents.size());
-					CreatureOld parent = parents.get(chosenIndex);
+					ICreature parent = parents.get(chosenIndex);
 					parents.remove(chosenIndex);
 					parent.setEnergy(getEnergy() - babySize * (parent.getBabyEnergy() / availableEnergy));
 					newPX += parent.getPx() / parentsTotal;
@@ -341,19 +338,19 @@ public class CreatureOld extends SoftBody {
 					newHue += parent.getHue() / parentsTotal;
 					newSaturation += parent.getSaturation() / parentsTotal;
 					newBrightness += parent.getBrightness() / parentsTotal;
-					newMouthHue += parent.mouthHue / parentsTotal;
+					newMouthHue += parent.getMouthHue() / parentsTotal;
 					for (int j = 0; j < Configuration.NUM_EYES; j++) {
-						newEyeAngles[j] += parent.eyes.get(j).angle / parentsTotal;
-						newEyeDistances[j] += parent.eyes.get(j).distance / parentsTotal;
+						newEyeAngles[j] += parent.getEyes().get(j).angle / parentsTotal;
+						newEyeDistances[j] += parent.getEyes().get(j).distance / parentsTotal;
 					}
-					parentNames[i] = parent.name;
-					if (parent.gen > highestGen) {
-						highestGen = parent.gen;
+					parentNames[i] = parent.getName();
+					if (parent.getGen() > highestGen) {
+						highestGen = parent.getGen();
 					}
 				}
 				newSaturation = 1;
 				newBrightness = 1;
-				getBoard().addCreature(new CreatureOld(this.evolvioApplet, getBoard(), newPX, newPY, 0, 0, babySize,
+				getBoard().addCreature(CreatureFactory.makeCreature(this.evolvioApplet, getBoard(), newPX, newPY, 0, 0, babySize,
 						newHue, newSaturation, newBrightness,
 						this.evolvioApplet.random(0, 2 * EvolvioApplet.PI), 0, stitchName(parentNames),
 						andifyParents(parentNames), true, newBrain, highestGen + 1, newMouthHue, newEyeAngles, newEyeDistances));
@@ -451,5 +448,9 @@ public class CreatureOld extends SoftBody {
 
 	public void setMouthHue(double set) {
 		mouthHue = Math.min(Math.max(set, 0), 1);
+	}
+
+	public List<Eye> getEyes() {
+		return eyes;
 	}
 }

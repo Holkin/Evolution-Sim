@@ -1,5 +1,12 @@
 package evolv.io.model;
 
+import evolv.io.Board;
+import evolv.io.Brain;
+import evolv.io.Eye;
+import evolv.io.temp.ICreature;
+
+import java.awt.geom.Point2D;
+import java.util.List;
 import java.util.Stack;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -83,7 +90,7 @@ public class Fauna {
         freeSlots.push(index);
     }
 
-    public class Creature {
+    public class Creature implements ICreature {
         private final int index;
         private double birthDate;
         private boolean alive;
@@ -92,16 +99,217 @@ public class Fauna {
             this.index = index;
         }
 
-        public double getBirthDate() {
-            return birthDate;
-        }
-
         private void init(double birthDate) {
             this.alive = true;
             this.birthDate = birthDate;
         }
         private void die() {
             alive = false;
+        }
+
+        @Override
+        public void eat(double v, double v1) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void fight(double v, double v1) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void reproduce(double manualBirthSize, double timeStep) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void useBrain(double timeStep, boolean b) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void see() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void metabolize(double timeStep) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void dropEnergy(double v) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void addEnergy(double safeSize) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void accelerate(double v, double v1) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void rotate(double v, double v1) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void collide(double timeStep) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void applyMotions(double v) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public int getId() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public int getGen() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public String getName() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public double getAge() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public double getBirthTime() {
+            return birthDate;
+        }
+
+        @Override
+        public float getPreferredRank() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public double getEnergy() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public double getBabyEnergy() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public double getMouthHue() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public double getEnergyUsage(double timeStep) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public double getRotation() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public String getParents() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Brain getBrain() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public List<Eye> getEyes() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void setPreferredRank(float v) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void setEnergy(double v) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void setPreviousEnergy() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void setHue(double v) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void setMouthHue(double v) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Point2D getPoint2D() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void drawBrain(float i, int apX, int apY) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void drawSoftBody(float scaleUp, float camZoom, boolean b) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Board getBoard() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public double getPx() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public double getPy() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public double getHue() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public double getSaturation() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public double getBrightness() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public double getRadius() {
+            throw new UnsupportedOperationException();
         }
     }
 }

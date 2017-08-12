@@ -2,6 +2,7 @@ package evolv.io;
 
 import java.util.List;
 
+import evolv.io.temp.ICreature;
 import evolv.io.util.MathUtil;
 
 public class Brain {
@@ -77,7 +78,7 @@ public class Brain {
 		}
 	}
 
-	public Brain evolve(List<CreatureOld> parents) {
+	public Brain evolve(List<ICreature> parents) {
 		int parentsTotal = parents.size();
 		Axon[][][] newBrain = new Axon[Configuration.BRAIN_WIDTH - 1][BRAIN_HEIGHT][BRAIN_HEIGHT - 1];
 		double[][] newNeurons = new double[Configuration.BRAIN_WIDTH][BRAIN_HEIGHT];

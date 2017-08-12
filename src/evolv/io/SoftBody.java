@@ -1,10 +1,12 @@
 package evolv.io;
 
+import evolv.io.temp.ISoftBody;
+
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SoftBody {
+public class SoftBody implements ISoftBody {
 	private static final float ENERGY_DENSITY = 1.0f
 			/ (Configuration.MINIMUM_SURVIVABLE_SIZE * Configuration.MINIMUM_SURVIVABLE_SIZE * EvolvioApplet.PI);
 
@@ -14,7 +16,7 @@ public class SoftBody {
 	/*
 	 * Set so when a creature is of minimum size, it equals one.
 	 */
-	private final List<SoftBody> colliders = new ArrayList<SoftBody>(0);
+	private final List<ISoftBody> colliders = new ArrayList<>(0);
 
 	private double px;
 	private double py;
@@ -104,7 +106,7 @@ public class SoftBody {
 		for (int x = SBIPMinX; x <= SBIPMaxX; x++) {
 			for (int y = SBIPMinY; y <= SBIPMaxY; y++) {
 				for (int i = 0; i < board.getSoftBodiesInPosition(x, y).size(); i++) {
-					SoftBody newCollider = board.getSoftBodiesInPosition(x, y).get(i);
+					ISoftBody newCollider = board.getSoftBodiesInPosition(x, y).get(i);
 					if (!colliders.contains(newCollider) && newCollider != this) {
 						colliders.add(newCollider);
 					}
@@ -112,13 +114,13 @@ public class SoftBody {
 			}
 		}
 		for (int i = 0; i < colliders.size(); i++) {
-			SoftBody collider = colliders.get(i);
-			float distance = EvolvioApplet.dist((float) px, (float) py, (float) collider.px, (float) collider.py);
+			ISoftBody collider = colliders.get(i);
+			float distance = EvolvioApplet.dist((float) px, (float) py, (float) collider.getPx(), (float) collider.getPy());
 			double combinedRadius = getRadius() + collider.getRadius();
 			if (distance < combinedRadius) {
 				double force = combinedRadius * Configuration.COLLISION_FORCE;
-				vx += ((px - collider.px) / distance) * force / getMass();
-				vy += ((py - collider.py) / distance) * force / getMass();
+				vx += ((px - collider.getPx()) / distance) * force / getMass();
+				vy += ((py - collider.getPy()) / distance) * force / getMass();
 			}
 		}
 		fightLevel = 0;
@@ -146,6 +148,7 @@ public class SoftBody {
 		return board;
 	}
 
+	@Override
 	public double getRadius() {
 		if (energy <= 0) {
 			return 0;
@@ -158,7 +161,7 @@ public class SoftBody {
 		return energy / ENERGY_DENSITY;
 	}
 
-	public List<SoftBody> getColliders() {
+	public List<ISoftBody> getColliders() {
 		return colliders;
 	}
 

@@ -1,13 +1,15 @@
 package evolv.io;
 
+import evolv.io.temp.ICreature;
+
 public interface CreatureAction {
 
-	public void doAction(CreatureOld creatureOld, double modifier, double timeStep);
+	public void doAction(ICreature creatureOld, double modifier, double timeStep);
 
 	public class Accelerate implements CreatureAction {
 
 		@Override
-		public void doAction(CreatureOld creatureOld, double amount, double timeStep) {
+		public void doAction(ICreature creatureOld, double amount, double timeStep) {
 			creatureOld.accelerate(amount, timeStep);
 		}
 	}
@@ -15,7 +17,7 @@ public interface CreatureAction {
 	public class AdjustHue implements CreatureAction {
 
 		@Override
-		public void doAction(CreatureOld creatureOld, double modifier, double timeStep) {
+		public void doAction(ICreature creatureOld, double modifier, double timeStep) {
 			creatureOld.setHue(Math.abs(modifier) % 1.0f);
 		}
 	}
@@ -23,7 +25,7 @@ public interface CreatureAction {
 	public class AdjustMouthHue implements CreatureAction {
 
 		@Override
-		public void doAction(CreatureOld creatureOld, double modifier, double timeStep) {
+		public void doAction(ICreature creatureOld, double modifier, double timeStep) {
 			creatureOld.setMouthHue(Math.abs(modifier) % 1.0f);
 		}
 
@@ -32,7 +34,7 @@ public interface CreatureAction {
 	public class Eat implements CreatureAction {
 
 		@Override
-		public void doAction(CreatureOld creatureOld, double attemptedAmount, double timeStep) {
+		public void doAction(ICreature creatureOld, double attemptedAmount, double timeStep) {
 			creatureOld.eat(attemptedAmount, timeStep);
 		}
 	}
@@ -40,7 +42,7 @@ public interface CreatureAction {
 	public class Fight implements CreatureAction {
 
 		@Override
-		public void doAction(CreatureOld creatureOld, double amount, double timeStep) {
+		public void doAction(ICreature creatureOld, double amount, double timeStep) {
 			creatureOld.fight(amount, timeStep);
 		}
 	}
@@ -48,14 +50,14 @@ public interface CreatureAction {
 	public class None implements CreatureAction {
 
 		@Override
-		public void doAction(CreatureOld creatureOld, double modifier, double timeStep) {
+		public void doAction(ICreature creatureOld, double modifier, double timeStep) {
 		}
 	}
 
 	public class Reproduce implements CreatureAction {
 
 		@Override
-		public void doAction(CreatureOld creatureOld, double modifier, double timeStep) {
+		public void doAction(ICreature creatureOld, double modifier, double timeStep) {
 			if (modifier <= 0) {
 				return; // This creatureOld doesn't want to reproduce
 			}
@@ -74,7 +76,7 @@ public interface CreatureAction {
 	public class Rotate implements CreatureAction {
 
 		@Override
-		public void doAction(CreatureOld creatureOld, double amount, double timeStep) {
+		public void doAction(ICreature creatureOld, double amount, double timeStep) {
 			creatureOld.rotate(amount, timeStep);
 		}
 	}

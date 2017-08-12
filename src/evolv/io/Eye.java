@@ -1,5 +1,8 @@
 package evolv.io;
 
+import evolv.io.temp.ICreature;
+import evolv.io.temp.ISoftBody;
+
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,12 +11,12 @@ public class Eye {
 
 	private static final float CROSS_SIZE = 0.022f;
 
-	private final CreatureOld creatureOld;
+	private final ICreature creatureOld;
 	private final EvolvioApplet evolvioApplet;
 	final double angle;
 	final double distance;
 
-	private final List<SoftBody> potentialVisionOccluders = new ArrayList<SoftBody>();
+	private final List<ISoftBody> potentialVisionOccluders = new ArrayList<>();
 	private double visionOccludedX;
 	private double visionOccludedY;
 
@@ -25,7 +28,7 @@ public class Eye {
 		public double brightness;
 	}
 
-	public Eye(EvolvioApplet evolvioApplet, CreatureOld creatureOld, double angle, double distance) {
+	public Eye(EvolvioApplet evolvioApplet, ICreature creatureOld, double angle, double distance) {
 		this.creatureOld = creatureOld;
 		this.evolvioApplet = evolvioApplet;
 		this.angle = angle;
@@ -56,7 +59,7 @@ public class Eye {
 		rotationMatrix[0][1] = Math.sin(-visionTotalAngle);
 		rotationMatrix[1][0] = -rotationMatrix[0][1];
 		double visionLineLength = distance;
-		for (SoftBody body : potentialVisionOccluders) {
+		for (ISoftBody body : potentialVisionOccluders) {
 			double x = body.getPx() - creatureOld.getPx();
 			double y = body.getPy() - creatureOld.getPy();
 			double r = body.getRadius();
@@ -131,9 +134,9 @@ public class Eye {
 		}
 	}
 
-	private void addPVOs(int x, int y, List<SoftBody> PVOs) {
+	private void addPVOs(int x, int y, List<ISoftBody> PVOs) {
 		if (x >= 0 && x < Configuration.BOARD_WIDTH && y >= 0 && y < creatureOld.getBoard().getBoardHeight()) {
-			for (SoftBody newCollider : creatureOld.getBoard().getSoftBodiesInPosition(x, y)) {
+			for (ISoftBody newCollider : creatureOld.getBoard().getSoftBodiesInPosition(x, y)) {
 				if (!PVOs.contains(newCollider) && newCollider != creatureOld) {
 					PVOs.add(newCollider);
 				}

@@ -1,11 +1,13 @@
 package evolv.io;
 
+import evolv.io.temp.ICreature;
+
 import java.util.Comparator;
 
 import javax.swing.SortOrder;
 
 public class CreatureComparators {
-	private static abstract class BaseComparator implements Comparator<CreatureOld> {
+	private static abstract class BaseComparator implements Comparator<ICreature> {
 		private final SortOrder sortOrder;
 
 		public BaseComparator(SortOrder sortOrder) {
@@ -13,7 +15,7 @@ public class CreatureComparators {
 		}
 
 		@Override
-		public final int compare(CreatureOld creatureOld1, CreatureOld creatureOld2) {
+		public final int compare(ICreature creatureOld1, ICreature creatureOld2) {
 			if (sortOrder == SortOrder.UNSORTED) {
 				return 0;
 			}
@@ -21,7 +23,7 @@ public class CreatureComparators {
 			return (sortOrder == SortOrder.ASCENDING) ? comparison : -comparison;
 		}
 
-		protected abstract int getComparison(CreatureOld creatureOld1, CreatureOld creatureOld2);
+		protected abstract int getComparison(ICreature creatureOld1, ICreature creatureOld2);
 	}
 
 	public static class NameComparator extends BaseComparator {
@@ -30,7 +32,7 @@ public class CreatureComparators {
 		}
 
 		@Override
-		public int getComparison(CreatureOld creatureOld1, CreatureOld creatureOld2) {
+		public int getComparison(ICreature creatureOld1, ICreature creatureOld2) {
 			return creatureOld2.getName().compareTo(creatureOld1.getName());
 		}
 	}
@@ -41,7 +43,7 @@ public class CreatureComparators {
 		}
 
 		@Override
-		public int getComparison(CreatureOld creatureOld1, CreatureOld creatureOld2) {
+		public int getComparison(ICreature creatureOld1, ICreature creatureOld2) {
 			return Double.compare(creatureOld1.getEnergy(), creatureOld2.getEnergy());
 		}
 	}
@@ -52,7 +54,7 @@ public class CreatureComparators {
 		}
 
 		@Override
-		public int getComparison(CreatureOld creatureOld1, CreatureOld creatureOld2) {
+		public int getComparison(ICreature creatureOld1, ICreature creatureOld2) {
 			return (int) Math.signum(creatureOld1.getBirthTime() - creatureOld2.getBirthTime());
 		}
 	}
@@ -63,7 +65,7 @@ public class CreatureComparators {
 		}
 
 		@Override
-		public int getComparison(CreatureOld creatureOld1, CreatureOld creatureOld2) {
+		public int getComparison(ICreature creatureOld1, ICreature creatureOld2) {
 			return creatureOld1.getGen() - creatureOld2.getGen();
 		}
 	}
