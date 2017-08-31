@@ -75,6 +75,10 @@ public class Fauna {
         return creature;
     }
 
+    public Creature getById(int id) {
+        return lookupCreature(id); // TODO test this
+    }
+
     public Creature produceCreature(double birthDate, double px, double py, int generation) {
         if (freeSlots.isEmpty()) {
             increaseFaunaLimit();

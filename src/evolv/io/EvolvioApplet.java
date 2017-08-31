@@ -61,8 +61,8 @@ public class EvolvioApplet extends PApplet {
 	@Override
 	public void settings() {
 		// Get users window size
-		this.windowWidth = displayWidth;
-		this.windowHeight = displayHeight;
+		this.windowWidth = 800;
+		this.windowHeight = 400;
 
 		// Set scaling to be custom to current users screen size
 		this.scaleFactor = ((float) windowHeight) / Configuration.BOARD_HEIGHT / Configuration.SCALE_TO_FIXBUG;

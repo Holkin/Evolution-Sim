@@ -13,6 +13,8 @@ import static evolv.io.Configuration.*;
 
 public class World {
 
+    public static final int RESOLUTION = 10;
+
     private static int NEXT_TILE_ID = 0;
 
     private final int width;
@@ -21,6 +23,7 @@ public class World {
     private final double climate[][];
     private final double food[][];
     private final Tile tiles[][];
+    private final int positions[][];
 
     private FoodGenerator foodGen;
 
@@ -31,9 +34,10 @@ public class World {
         climate = new double[height][width];
         food = new double[height][width];
         tiles = new Tile[height][width];
+        positions = new int[height * RESOLUTION][width * RESOLUTION];
         // generate once
-        for (int i=0; i<height; i++) {
-            for (int j=0; j<width; j++) {
+        for (int i = 0; i < height; i++) {
+            for (int j = 0; j < width; j++) {
                 tiles[i][j] = new Tile(i, j);
             }
         }
@@ -47,8 +51,8 @@ public class World {
      * This is expected to be called once. No performance optimisation required.
      */
     public void recreate(MapGenerator climateGen, MapGenerator fertilityGen) {
-        for (int i=0; i<height; i++) {
-            for (int j=0; j<width; j++) {
+        for (int i = 0; i < height; i++) {
+            for (int j = 0; j < width; j++) {
                 climate[i][j] = climateGen.generate(i, j);
                 fertility[i][j] = Math.max(fertilityGen.generate(i, j), 0);
                 food[i][j] = fertility[i][j];
@@ -60,8 +64,8 @@ public class World {
      * This is expected to be called for every frame.
      */
     public void update(double growthRate) {
-        for (int i=0; i<height; i++) {
-            for (int j=0; j<width; j++) {
+        for (int i = 0; i < height; i++) {
+            for (int j = 0; j < width; j++) {
                 if (fertility[i][j] > MAX_FERTILITY) continue;
                 food[i][j] += foodGen.<Double>generate(fertility[i][j], food[i][j], growthRate);
                 food[i][j] = Math.max(food[i][j], 0);
@@ -81,6 +85,10 @@ public class World {
         return tiles;
     }
 
+    public int[][] getPositions() {
+        return positions;
+    }
+
     private static int getTileId() {
         return ++NEXT_TILE_ID;
     }
@@ -90,26 +98,33 @@ public class World {
      */
     public class Tile {
         public final int x, y, id;
+
         Tile(int x, int y) {
             this.x = x;
             this.y = y;
             this.id = getTileId();
         }
+
         public double getFood() {
             return food[y][x];
         }
+
         public float getClimate() {
             return (float) climate[y][x];
         }
+
         public float getFertility() {
             return (float) fertility[y][x];
         }
+
         public boolean isWater() {
             return fertility[y][x] > MAX_FERTILITY;
         }
+
         public void incFood(double amount) {
             food[y][x] = Math.max(food[y][x] + amount, 0);
         }
+
         public double getFoodType() {
             return getClimate();
         }

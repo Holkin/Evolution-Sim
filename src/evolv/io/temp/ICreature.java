@@ -27,7 +27,7 @@ public interface ICreature extends ISoftBody {
     void collide(double timeStep);
     void applyMotions(double v);
 
-    int getId();
+
     int getGen();
     String getName();
     double getAge();

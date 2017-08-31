@@ -137,6 +137,11 @@ public class SoftBody implements ISoftBody {
 		return colliders;
 	}
 
+	@Override
+	public int getId() {
+		return -1;
+	}
+
 	public double getPx() {
 		return px;
 	}

@@ -426,8 +426,9 @@ public class Board {
 		for (int i = 0; i < creatureOlds.size(); i++) {
 			creatureOlds.get(i).applyMotions(timeStep * Configuration.TIMESTEPS_PER_YEAR);
 		}
-		BodyPositionsMap.update();
-		BodyCollisionsMap.update();
+//		BodyPositionsMap.update();
+//		BodyCollisionsMap.update();
+		CollisionDetector.getCollisions(world, Singletons.FAUNA.getAliveCreatures());
 		for (int i = 0; i < creatureOlds.size(); i++) {
 			creatureOlds.get(i).see();
 		}
