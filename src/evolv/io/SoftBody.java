@@ -1,6 +1,8 @@
 package evolv.io;
 
+import evolv.io.temp.BodyCollisionsMap;
 import evolv.io.temp.ISoftBody;
+import evolv.io.temp.Singletons;
 
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
@@ -54,33 +56,10 @@ public class SoftBody implements ISoftBody {
      */
 	public void setSBIP(boolean shouldRemove) {
 		double radius = getRadius() * Configuration.FIGHT_RANGE;
-		int prevSBIPMinX = SBIPMinX;
-		int prevSBIPMinY = SBIPMinY;
-		int prevSBIPMaxX = SBIPMaxX;
-		int prevSBIPMaxY = SBIPMaxY;
 		SBIPMinX = xBound((int) (Math.floor(px - radius)));
 		SBIPMinY = yBound((int) (Math.floor(py - radius)));
 		SBIPMaxX = xBound((int) (Math.floor(px + radius)));
 		SBIPMaxY = yBound((int) (Math.floor(py + radius)));
-		if (prevSBIPMinX != SBIPMinX || prevSBIPMinY != SBIPMinY || prevSBIPMaxX != SBIPMaxX
-				|| prevSBIPMaxY != SBIPMaxY) {
-			if (shouldRemove) {
-				for (int x = prevSBIPMinX; x <= prevSBIPMaxX; x++) {
-					for (int y = prevSBIPMinY; y <= prevSBIPMaxY; y++) {
-						if (x < SBIPMinX || x > SBIPMaxX || y < SBIPMinY || y > SBIPMaxY) {
-							board.getSoftBodiesInPosition(x, y).remove(this);
-						}
-					}
-				}
-			}
-			for (int x = SBIPMinX; x <= SBIPMaxX; x++) {
-				for (int y = SBIPMinY; y <= SBIPMaxY; y++) {
-					if (x < prevSBIPMinX || x > prevSBIPMaxX || y < prevSBIPMinY || y > prevSBIPMaxY) {
-						board.getSoftBodiesInPosition(x, y).add(this);
-					}
-				}
-			}
-		}
 	}
 
 	public int xBound(int x) {
@@ -103,16 +82,8 @@ public class SoftBody implements ISoftBody {
 
 	public void collide(double timeStep) {
 		colliders.clear();
-		for (int x = SBIPMinX; x <= SBIPMaxX; x++) {
-			for (int y = SBIPMinY; y <= SBIPMaxY; y++) {
-				for (int i = 0; i < board.getSoftBodiesInPosition(x, y).size(); i++) {
-					ISoftBody newCollider = board.getSoftBodiesInPosition(x, y).get(i);
-					if (!colliders.contains(newCollider) && newCollider != this) {
-						colliders.add(newCollider);
-					}
-				}
-			}
-		}
+		colliders.addAll(BodyCollisionsMap.getCollidedBodies(this));
+
 		for (int i = 0; i < colliders.size(); i++) {
 			ISoftBody collider = colliders.get(i);
 			float distance = EvolvioApplet.dist((float) px, (float) py, (float) collider.getPx(), (float) collider.getPy());
@@ -148,12 +119,13 @@ public class SoftBody implements ISoftBody {
 		return board;
 	}
 
+	// TODO remove calculations from getter
 	@Override
 	public double getRadius() {
 		if (energy <= 0) {
 			return 0;
 		} else {
-			return Math.sqrt(energy / ENERGY_DENSITY / Math.PI);
+			return Math.sqrt(energy / ENERGY_DENSITY / Math.PI) * 2.5;
 		}
 	}
 
@@ -203,10 +175,6 @@ public class SoftBody implements ISoftBody {
 
 	public double getBirthTime() {
 		return birthTime;
-	}
-
-	public double getAge() {
-		return getBoard().getYear() - getBirthTime();
 	}
 
 	public double getHue() {

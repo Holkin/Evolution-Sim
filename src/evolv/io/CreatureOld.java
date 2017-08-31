@@ -21,8 +21,6 @@ public class CreatureOld extends SoftBody implements ICreature {
 	// Family
 	private final String name;
 	private final String parents;
-	private final int gen;
-	private final int id;
 	
 	// Vision or View or Preference
 	private final List<Eye> eyes = new ArrayList<>();
@@ -35,6 +33,7 @@ public class CreatureOld extends SoftBody implements ICreature {
 	private double mouthHue;
 	private double vr;
 	private double rotation;
+	private int gen;
 
 	// TODO can the size of these constructors be reduced?
 
@@ -51,12 +50,10 @@ public class CreatureOld extends SoftBody implements ICreature {
 		this.brain = brain;
 		this.rotation = rot;
 		this.vr = tvr;
-		this.id = board.getCreatureIdUpTo() + 1;
 		this.name = createName(tname, mutateName);
 		this.parents = tparents;
-		board.incrementCreatureIdUpTo();
-		this.gen = tgen;
 		this.mouthHue = tmouthHue;
+		this.gen = tgen;
 		
 		for (int i = 0; i < Configuration.NUM_EYES; i++) { 
 			if (teyeDistances[i] == 0.0f) {
@@ -99,6 +96,8 @@ public class CreatureOld extends SoftBody implements ICreature {
 	}
 
 	public void drawSoftBody(float scaleUp, float camZoom, boolean showVision) {
+		double cx = getPx() - getRadius()/2;
+		double cy = getPy() - getRadius()/2;
 		this.evolvioApplet.ellipseMode(EvolvioApplet.RADIUS);
 		double radius = getRadius();
 		if (showVision && camZoom > Configuration.MAX_DETAILED_ZOOM) {
@@ -109,7 +108,7 @@ public class CreatureOld extends SoftBody implements ICreature {
 		this.evolvioApplet.noStroke();
 		if (getFightLevel() > 0) {
 			this.evolvioApplet.fill(0, 1, 1, (float) (getFightLevel() * 0.8f));
-			this.evolvioApplet.ellipse((float) (getPx() * scaleUp), (float) (getPy() * scaleUp),
+			this.evolvioApplet.ellipse((float) (cx * scaleUp), (float) (cy * scaleUp),
 					(float) (Configuration.FIGHT_RANGE * radius * scaleUp),
 					(float) (Configuration.FIGHT_RANGE * radius * scaleUp));
 		}
@@ -117,7 +116,7 @@ public class CreatureOld extends SoftBody implements ICreature {
 		this.evolvioApplet.stroke(0, 0, 1);
 		this.evolvioApplet.fill(0, 0, 1);
 		if (this == getBoard().getSelectedCreatureOld()) {
-			this.evolvioApplet.ellipse((float) (getPx() * scaleUp), (float) (getPy() * scaleUp),
+			this.evolvioApplet.ellipse((float) (cx * scaleUp), (float) (cy * scaleUp),
 					(float) (radius * scaleUp + 1 + 75.0f / camZoom), (float) (radius * scaleUp + 1 + 75.0f / camZoom));
 		}
 		super.drawSoftBody(scaleUp);
@@ -265,26 +264,10 @@ public class CreatureOld extends SoftBody implements ICreature {
 		return (Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1)));
 	}
 
-	public void addPVOs(int x, int y, List<ISoftBody> PVOs) {
-		if (x >= 0 && x < Configuration.BOARD_WIDTH && y >= 0 && y < getBoard().getBoardHeight()) {
-			for (int i = 0; i < getBoard().getSoftBodiesInPosition(x, y).size(); i++) {
-				ISoftBody newCollider = getBoard().getSoftBodiesInPosition(x, y).get(i);
-				if (!PVOs.contains(newCollider) && newCollider != this) {
-					PVOs.add(newCollider);
-				}
-			}
-		}
-	}
-
 	public void returnToEarth() {
 		int pieces = 20;
 		for (int i = 0; i < pieces; i++) {
             getRandomCoveredTile().incFood(getEnergy() / pieces);
-		}
-		for (int x = getSBIPMinX(); x <= getSBIPMaxX(); x++) {
-			for (int y = getSBIPMinY(); y <= getSBIPMaxY(); y++) {
-				getBoard().getSoftBodiesInPosition(x, y).remove(this);
-			}
 		}
 		if (getBoard().getSelectedCreatureOld() == this) {
 			getBoard().unselect();
@@ -384,6 +367,7 @@ public class CreatureOld extends SoftBody implements ICreature {
 		return name;
 	}
 
+
 	@Override
 	public void applyMotions(double timeStep) {
 		if (getRandomCoveredTile().isWater()) {
@@ -435,9 +419,12 @@ public class CreatureOld extends SoftBody implements ICreature {
 	}
 
 	public int getId() {
-		return id;
+		throw new RuntimeException("not supported anymore");
 	}
 
+	public double getAge() {
+		return getBoard().getYear() - getBirthTime();
+	}
 	public double getRotation() {
 		return rotation;
 	}

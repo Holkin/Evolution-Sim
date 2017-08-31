@@ -1,8 +1,7 @@
 package evolv.io;
 
-import evolv.io.temp.CreatureFactory;
-import evolv.io.temp.ICreature;
-import evolv.io.temp.ISoftBody;
+import evolv.io.model.Fauna;
+import evolv.io.temp.*;
 import evolv.io.model.World;
 import evolv.io.renderers.TileRenderer;
 import evolv.io.util.MathUtil;
@@ -34,12 +33,10 @@ public class Board {
 	private final int randomSeed;
 
 	// CreatureOld
-	private final List<ISoftBody>[][] softBodiesInPositions = new List[Configuration.BOARD_WIDTH][Configuration.BOARD_HEIGHT];
 	private final List<ICreature> creatureOlds = new ArrayList<>();
 	private final ICreature[] list = new ICreature[Configuration.LIST_SLOTS];
 	private float spawnChance = Configuration.SPAWN_CHANCE;
 	private ICreature selectedCreatureOld;
-	private int creatureIDUpTo;
 	private int sortMetric;
 	private boolean isPressingKeyB;
 
@@ -117,12 +114,6 @@ public class Board {
 		});
 		this.tileRenderer = new TileRenderer(evolvioApplet);
 		// ==========================================
-
-		for (int x = 0; x < Configuration.BOARD_WIDTH; x++) {
-			for (int y = 0; y < Configuration.BOARD_HEIGHT; y++) {
-				softBodiesInPositions[x][y] = new ArrayList<>(0);
-			}
-		}
 
 		this.fileSaveCounts = new int[4];
 		this.fileSaveTimes = new double[4];
@@ -384,52 +375,60 @@ public class Board {
 			me.metabolize(timeStep);
 			me.useBrain(timeStep, !userControl);
 			if (userControl) {
-				if (me == selectedCreatureOld) {
-					if (this.evolvioApplet.keyPressed) {
-						if (this.evolvioApplet.key == EvolvioApplet.CODED) {
-							if (this.evolvioApplet.keyCode == EvolvioApplet.UP)
-								me.accelerate(0.04f, timeStep * Configuration.TIMESTEPS_PER_YEAR);
-							if (this.evolvioApplet.keyCode == EvolvioApplet.DOWN)
-								me.accelerate(-0.04f, timeStep * Configuration.TIMESTEPS_PER_YEAR);
-							if (this.evolvioApplet.keyCode == EvolvioApplet.LEFT)
-								me.rotate(-0.1f, timeStep * Configuration.TIMESTEPS_PER_YEAR);
-							if (this.evolvioApplet.keyCode == EvolvioApplet.RIGHT)
-								me.rotate(0.1f, timeStep * Configuration.TIMESTEPS_PER_YEAR);
-						} else {
-							if (this.evolvioApplet.key == ' ')
-								me.eat(0.1f, timeStep * Configuration.TIMESTEPS_PER_YEAR);
-							if (this.evolvioApplet.key == 'v' || this.evolvioApplet.key == 'V')
-								me.eat(-0.1f, timeStep * Configuration.TIMESTEPS_PER_YEAR);
-							if (this.evolvioApplet.key == 'f' || this.evolvioApplet.key == 'F')
-								me.fight(0.5f, timeStep * Configuration.TIMESTEPS_PER_YEAR);
-							if (this.evolvioApplet.key == 'u' || this.evolvioApplet.key == 'U')
-								me.setHue(me.getHue() + 0.02f);
-							if (this.evolvioApplet.key == 'j' || this.evolvioApplet.key == 'J')
-								me.setHue(me.getHue() - 0.02f);
-
-							if (this.evolvioApplet.key == 'i' || this.evolvioApplet.key == 'I')
-								me.setMouthHue(me.getMouthHue() + 0.02f);
-							if (this.evolvioApplet.key == 'k' || this.evolvioApplet.key == 'K')
-								me.setMouthHue(me.getMouthHue() - 0.02f);
-							if (this.evolvioApplet.key == 'b' || this.evolvioApplet.key == 'B') {
-								if (!isPressingKeyB) {
-									me.reproduce(Configuration.MANUAL_BIRTH_SIZE, timeStep);
-								}
-								isPressingKeyB = true;
-							} else {
-								isPressingKeyB = false;
-							}
-						}
-					}
-				}
+				useControl(timeStep, me);
 			}
 		}
 		finishIterate(timeStep);
 	}
 
+	private void useControl(double timeStep, ICreature me) {
+		if (me == selectedCreatureOld) {
+            if (this.evolvioApplet.keyPressed) {
+                if (this.evolvioApplet.key == EvolvioApplet.CODED) {
+                    if (this.evolvioApplet.keyCode == EvolvioApplet.UP)
+                        me.accelerate(0.04f, timeStep * Configuration.TIMESTEPS_PER_YEAR);
+                    if (this.evolvioApplet.keyCode == EvolvioApplet.DOWN)
+                        me.accelerate(-0.04f, timeStep * Configuration.TIMESTEPS_PER_YEAR);
+                    if (this.evolvioApplet.keyCode == EvolvioApplet.LEFT)
+                        me.rotate(-0.1f, timeStep * Configuration.TIMESTEPS_PER_YEAR);
+                    if (this.evolvioApplet.keyCode == EvolvioApplet.RIGHT)
+                        me.rotate(0.1f, timeStep * Configuration.TIMESTEPS_PER_YEAR);
+                } else {
+                    if (this.evolvioApplet.key == ' ')
+                        me.eat(0.1f, timeStep * Configuration.TIMESTEPS_PER_YEAR);
+                    if (this.evolvioApplet.key == 'v' || this.evolvioApplet.key == 'V')
+                        me.eat(-0.1f, timeStep * Configuration.TIMESTEPS_PER_YEAR);
+                    if (this.evolvioApplet.key == 'f' || this.evolvioApplet.key == 'F')
+                        me.fight(0.5f, timeStep * Configuration.TIMESTEPS_PER_YEAR);
+                    if (this.evolvioApplet.key == 'u' || this.evolvioApplet.key == 'U')
+                        me.setHue(me.getHue() + 0.02f);
+                    if (this.evolvioApplet.key == 'j' || this.evolvioApplet.key == 'J')
+                        me.setHue(me.getHue() - 0.02f);
+
+                    if (this.evolvioApplet.key == 'i' || this.evolvioApplet.key == 'I')
+                        me.setMouthHue(me.getMouthHue() + 0.02f);
+                    if (this.evolvioApplet.key == 'k' || this.evolvioApplet.key == 'K')
+                        me.setMouthHue(me.getMouthHue() - 0.02f);
+                    if (this.evolvioApplet.key == 'b' || this.evolvioApplet.key == 'B') {
+                        if (!isPressingKeyB) {
+                            me.reproduce(Configuration.MANUAL_BIRTH_SIZE, timeStep);
+                        }
+                        isPressingKeyB = true;
+                    } else {
+                        isPressingKeyB = false;
+                    }
+                }
+            }
+        }
+	}
+
 	private void finishIterate(double timeStep) {
 		for (int i = 0; i < creatureOlds.size(); i++) {
 			creatureOlds.get(i).applyMotions(timeStep * Configuration.TIMESTEPS_PER_YEAR);
+		}
+		BodyPositionsMap.update();
+		BodyCollisionsMap.update();
+		for (int i = 0; i < creatureOlds.size(); i++) {
 			creatureOlds.get(i).see();
 		}
 		if (Math.floor(fileSaveTimes[1] / imageSaveInterval) != Math.floor(year / imageSaveInterval)) {
@@ -443,13 +442,6 @@ public class Board {
 	private double getGrowthRate(double theTime) {
 		double temperatureRange = maxTemperature - minTemperature;
 		return minTemperature + temperatureRange * 0.5f - temperatureRange * 0.5f * Math.cos(theTime * 2 * Math.PI);
-	}
-
-	public double getGrowthOverTimeRange(double startTime, double endTime) {
-		double temperatureRange = maxTemperature - minTemperature;
-		double m = minTemperature + temperatureRange * 0.5f;
-		return (endTime - startTime) * m + (temperatureRange / Math.PI / 4.0f)
-				* (Math.sin(2 * Math.PI * startTime) - Math.sin(2 * Math.PI * endTime));
 	}
 
 	private double getSeason() {
@@ -486,18 +478,6 @@ public class Board {
 		this.evolvioApplet.text("Zero", x1 - 5, (float) (zeroLineY + 8));
 		this.evolvioApplet.text(EvolvioApplet.nf(minTemperature, 0, 2), x1 - 5, (float) (minY + 8));
 		this.evolvioApplet.text(EvolvioApplet.nf(maxTemperature, 0, 2), x1 - 5, (float) (maxY + 8));
-	}
-
-	private void drawVerticalSlider(float x1, float y1, float w, float h, double prog, int fillColor, int antiColor) {
-		this.evolvioApplet.noStroke();
-		this.evolvioApplet.fill(0, 0, 0.2f);
-		this.evolvioApplet.rect(x1, y1, w, h);
-		if (prog >= 0) {
-			this.evolvioApplet.fill(fillColor);
-		} else {
-			this.evolvioApplet.fill(antiColor);
-		}
-		this.evolvioApplet.rect(x1, (float) (y1 + h * (1 - prog)), w, (float) (prog * h));
 	}
 
 	public boolean setMinTemperature(float temp) {
@@ -568,18 +548,6 @@ public class Board {
 		}
 	}
 
-	public List<ISoftBody> getSoftBodiesInPosition(int x, int y) {
-		return softBodiesInPositions[x][y];
-	}
-
-	public int getCreatureIdUpTo() {
-		return creatureIDUpTo;
-	}
-
-	public void incrementCreatureIdUpTo() {
-		creatureIDUpTo++;
-	}
-
 	private ICreature getRandomCreature() {
 		int index = (int) (this.evolvioApplet.random(0, creatureOlds.size()));
 		return creatureOlds.get(index);
@@ -595,11 +563,6 @@ public class Board {
 
 	public int getBoardHeight() {
 		return Configuration.BOARD_HEIGHT;
-	}
-
-	private double getRandomSize() {
-		return EvolvioApplet.pow(this.evolvioApplet.random(Configuration.MINIMUM_ROCK_ENERGY_BASE,
-				Configuration.MAXIMUM_ROCK_ENERGY_BASE), 4);
 	}
 
 	private void drawCreature(ICreature c, float x, float y, float scale, float scaleUp) {
@@ -649,7 +612,7 @@ public class Board {
 	}
 
 	public void removeCreature(ICreature creatureOld) {
-		creatureOlds.remove(creatureOld);
+		creatureOlds.remove(CreatureFactory.removeCreature(creatureOld));
 	}
 
 	public ICreature getSelectedCreatureOld() {
@@ -720,10 +683,6 @@ public class Board {
 		return playSpeed;
 	}
 
-	public void setPlaySpeed(int playSpeed) {
-		this.playSpeed = playSpeed;
-	}
-
 	public boolean isUserControl() {
 		return userControl;
 	}
@@ -740,14 +699,4 @@ public class Board {
 		this.render = isRender;
 	}
 
-	// TODO remove all below
-
-
-	public float getMinTemperature() {
-		return minTemperature;
-	}
-
-	public float getMaxTemperature() {
-		return maxTemperature;
-	}
 }

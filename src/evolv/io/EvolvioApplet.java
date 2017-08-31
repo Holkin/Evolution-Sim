@@ -1,5 +1,6 @@
 package evolv.io;
 
+import evolv.io.model.Fauna;
 import evolv.io.temp.ICreature;
 import evolv.io.temp.ISoftBody;
 import evolv.io.peripherals.MouseAction;
@@ -14,6 +15,8 @@ import processing.event.MouseEvent;
 
 import java.util.Arrays;
 import java.util.List;
+
+import static evolv.io.temp.Singletons.*;
 
 public class EvolvioApplet extends PApplet {
 	private enum DragMode{
@@ -228,14 +231,10 @@ public class EvolvioApplet extends PApplet {
 				evoBoard.unselect();
 				cameraR = 0;
 				if (x >= 0 && x < Configuration.BOARD_WIDTH && y >= 0 && y < Configuration.BOARD_HEIGHT) {
-					for (ISoftBody body : evoBoard.getSoftBodiesInPosition(x, y)) {
-						if (body instanceof ICreature) {
-							float distance = dist(mX, mY, (float) body.getPx(), (float) body.getPy());
-							if (distance <= body.getRadius()) {
-								evoBoard.setSelectedCreatureOld((ICreature) body);
-								zoom = 16;
-							}
-						}
+					ICreature nearCreature = FAUNA.getNearCreature(mX, mY, 0);
+					if (nearCreature != null) {
+						evoBoard.setSelectedCreatureOld(nearCreature);
+						zoom = 16;
 					}
 				}
 			}

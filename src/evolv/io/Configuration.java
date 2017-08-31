@@ -49,7 +49,7 @@ public class Configuration {
 	public static final double ACCELERATION_ENERGY = 0.18;
 	public static final double ACCELERATION_BACKWARDS_ENERGY = 0.24;
 	public static final double SWIM_ENERGY = 0.008;
-	public static final double TURN_ENERGY = 0.06;
+	public static final double TURN_ENERGY = 0.26;
 	public static final double EAT_ENERGY = 0.05;
 	public static final double EAT_SPEED = 0.5;
 	public static final double EAT_WHILE_MOVING_INEFFICIENCY_MULTIPLIER = 2.0;

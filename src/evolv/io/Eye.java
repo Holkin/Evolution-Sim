@@ -1,7 +1,9 @@
 package evolv.io;
 
+import evolv.io.temp.BodyPositionsMap;
 import evolv.io.temp.ICreature;
 import evolv.io.temp.ISoftBody;
+import evolv.io.temp.Singletons;
 
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
@@ -136,11 +138,8 @@ public class Eye {
 
 	private void addPVOs(int x, int y, List<ISoftBody> PVOs) {
 		if (x >= 0 && x < Configuration.BOARD_WIDTH && y >= 0 && y < creatureOld.getBoard().getBoardHeight()) {
-			for (ISoftBody newCollider : creatureOld.getBoard().getSoftBodiesInPosition(x, y)) {
-				if (!PVOs.contains(newCollider) && newCollider != creatureOld) {
-					PVOs.add(newCollider);
-				}
-			}
+			PVOs.addAll(BodyPositionsMap.getBodiesAtPosition(x, y));
+			PVOs.remove(creatureOld);
 		}
 	}
 

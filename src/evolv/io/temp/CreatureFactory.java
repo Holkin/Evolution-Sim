@@ -2,12 +2,16 @@ package evolv.io.temp;
 
 
 import evolv.io.*;
+import evolv.io.model.Fauna;
 
 public class CreatureFactory {
+
+    private static final Fauna fauna = Singletons.FAUNA;
+
     public static ICreature makeCreature(
             EvolvioApplet evolvioApplet,
             Board board,
-            double tpx, double tpy,
+            double px, double py,
             double tvx, double tvy,
             double tenergy,
             double thue, double tsaturation, double tbrightness,
@@ -17,13 +21,15 @@ public class CreatureFactory {
             String tparents,
             boolean mutateName,
             Brain brain,
-            int tgen,
+            int gen,
             double tmouthHue,
             double[] teyeDistances,
             double[] teyeAngles
     ) {
-        return new CreatureOld(evolvioApplet, board, tpx, tpy, tvx, tvy, tenergy, thue, tsaturation, tbrightness,
-                rot, tvr, tname, tparents, mutateName, brain, tgen, tmouthHue, teyeDistances, teyeAngles);
+        Fauna.Creature creature = fauna.produceCreature(board.getYear(), px, py, gen);
+        creature.old = new CreatureOld(evolvioApplet, board, px, py, tvx, tvy, tenergy, thue, tsaturation, tbrightness,
+                rot, tvr, tname, tparents, mutateName, brain, gen, tmouthHue, teyeDistances, teyeAngles);
+        return creature;
     }
 
     public static ICreature makeCreature(EvolvioApplet evolvioApplet, Board board) {
@@ -32,5 +38,13 @@ public class CreatureFactory {
                 evolvioApplet.random(Configuration.MINIMUM_CREATURE_ENERGY, Configuration.MAXIMUM_CREATURE_ENERGY),
                 evolvioApplet.random(0, 1), 1, 1, evolvioApplet.random(0, 2 * EvolvioApplet.PI), 0, "", "[PRIMORDIAL]",
                 true, null, 1, evolvioApplet.random(0, 1), new double[Configuration.NUM_EYES], new double[Configuration.NUM_EYES]);
+    }
+
+    public static ICreature removeCreature(ICreature creature) {
+        try {
+            return fauna.killCreature((Fauna.Creature) creature);
+        } catch (ClassCastException ex) {
+            return fauna.killOldCreature(creature);
+        }
     }
 }
